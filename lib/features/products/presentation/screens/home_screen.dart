@@ -47,6 +47,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: Column(
+        // Full width for every child, so the chip row starts at the left
+        // edge even when the chips don't fill the screen.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CategoryChips(
             categories: _categories,
@@ -60,8 +63,10 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(12),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              // Fits as many columns as possible without any card becoming
+              // wider than 220: 2 on phones, more on tablets and landscape.
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 220,
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
                 childAspectRatio: 0.65,

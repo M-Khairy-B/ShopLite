@@ -22,24 +22,28 @@ class CategoryChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        itemCount: categories.length + 1,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          // Index 0 is the "All" chip; the categories follow it.
-          final category = index == 0 ? null : categories[index - 1];
-
-          return ChoiceChip(
-            label: Text(category == null ? 'All' : _capitalize(category)),
-            selected: category == selectedCategory,
-            onSelected: (_) => onSelected(category),
-          );
-        },
+    // A scroll view + Row (instead of a fixed-height ListView) takes the
+    // height of its tallest chip, so chips grow with the user's text size.
+    // There are only a few categories, so building them all at once is fine.
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        spacing: 8,
+        children: [
+          _buildChip(null),
+          for (final category in categories) _buildChip(category),
+        ],
       ),
+    );
+  }
+
+  /// Builds one chip; a `null` category means the "All" chip.
+  Widget _buildChip(String? category) {
+    return ChoiceChip(
+      label: Text(category == null ? 'All' : _capitalize(category)),
+      selected: category == selectedCategory,
+      onSelected: (_) => onSelected(category),
     );
   }
 
