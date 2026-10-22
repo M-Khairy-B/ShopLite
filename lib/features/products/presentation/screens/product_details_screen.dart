@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:e_commerce_learn/core/utils/price_formatter.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/quantity_selector.dart';
 
 /// Shows everything we know about one product.
 ///
@@ -47,6 +48,14 @@ class ProductDetailsScreen extends StatelessWidget {
                       product.rating.toStringAsFixed(1),
                       style: textTheme.bodyLarge,
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Text('Quantity', style: textTheme.titleMedium),
+                    const Spacer(),
+                    const QuantitySelector(),
                   ],
                 ),
                 const SizedBox(height: 16),
