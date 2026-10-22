@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:e_commerce_learn/app/theme/app_theme.dart';
 import 'package:e_commerce_learn/core/utils/price_formatter.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
@@ -50,7 +51,7 @@ class ProductCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 16, color: Colors.amber),
+                      const Icon(Icons.star, size: 16, color: ratingStarColor),
                       const SizedBox(width: 4),
                       Text(
                         product.rating.toStringAsFixed(1),
