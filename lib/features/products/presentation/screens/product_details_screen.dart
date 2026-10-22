@@ -1,0 +1,110 @@
+import 'package:flutter/material.dart';
+import 'package:e_commerce_learn/app/theme/app_theme.dart';
+import 'package:e_commerce_learn/core/utils/price_formatter.dart';
+import 'package:e_commerce_learn/features/products/data/models/product.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/quantity_selector.dart';
+
+/// From this width (in dp) the image and the details sit side by side.
+/// 600 dp is where Material Design stops treating a screen as "compact".
+const double _wideLayoutBreakpoint = 600;
+
+/// Shows everything we know about one product.
+///
+/// Opened from the home screen when a product card is tapped. On narrow
+/// screens the details scroll below the image; on wide screens (tablets,
+/// landscape phones) they sit beside it.
+class ProductDetailsScreen extends StatelessWidget {
+  const ProductDetailsScreen({super.key, required this.product});
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = ProductImage(url: product.thumbnailUrl, fit: BoxFit.contain);
+
+    return Scaffold(
+      appBar: AppBar(),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth >= _wideLayoutBreakpoint) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: AspectRatio(aspectRatio: 1, child: image),
+                  ),
+                ),
+                Expanded(
+                  child: ListView(children: [_ProductInfo(product: product)]),
+                ),
+              ],
+            );
+          }
+
+          return ListView(
+            children: [
+              AspectRatio(aspectRatio: 1, child: image),
+              _ProductInfo(product: product),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Title, price, rating, quantity and description, used by both layouts.
+class _ProductInfo extends StatelessWidget {
+  const _ProductInfo({required this.product});
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(product.title, style: textTheme.headlineSmall),
+          const SizedBox(height: 8),
+          Text(
+            formatPrice(product.priceCents),
+            style: textTheme.headlineSmall?.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.star, color: ratingStarColor),
+              const SizedBox(width: 4),
+              Text(
+                product.rating.toStringAsFixed(1),
+                style: textTheme.bodyLarge,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              // Expanded (not Spacer) lets the label shrink and wrap when
+              // large text leaves too little room beside the selector.
+              Expanded(child: Text('Quantity', style: textTheme.titleMedium)),
+              const QuantitySelector(),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(product.description, style: textTheme.bodyLarge),
+        ],
+      ),
+    );
+  }
+}

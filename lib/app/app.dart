@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:e_commerce_learn/app/theme/app_theme.dart';
+import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 
 class ShopLiteApp extends StatelessWidget {
   const ShopLiteApp({super.key});
@@ -7,13 +9,8 @@ class ShopLiteApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ShopLite',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: Scaffold(
-        appBar: AppBar(title: const Text('ShopLite')),
-        body: const Center(child: Text('Welcome to ShopLite')),
-      ),
+      theme: buildAppTheme(),
+      home: const HomeScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
