@@ -96,6 +96,15 @@ void main() {
       expect(tester.getTopLeft(find.byType(ChoiceChip).first).dx, 12);
     });
 
+    testWidgets('survives a zero-size first frame', (tester) async {
+      // Android can lay out the very first frame before the window has its
+      // real size, so the screen must not throw when its width is 0.
+      _setScreen(tester, Size.zero, _phonePixelRatio);
+      await tester.pumpWidget(const ShopLiteApp());
+
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('has no overflow on a landscape phone', (tester) async {
       _setScreen(tester, _phoneLandscape, _phonePixelRatio);
       await tester.pumpWidget(const ShopLiteApp());

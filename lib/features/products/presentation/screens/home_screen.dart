@@ -1,11 +1,19 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/category_chips.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 
-/// The first screen of the app: category filters above a two-column
-/// product grid.
+/// The grid gets one column for every this many dp of width...
+const int _widthPerColumn = 200;
+
+/// ...but never fewer than this many columns.
+const int _minColumns = 2;
+
+/// The first screen of the app: category filters above a product grid
+/// whose number of columns follows the available width.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -61,28 +69,38 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(12),
-              // Fits as many columns as possible without any card becoming
-              // wider than 220: 2 on phones, more on tablets and landscape.
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 220,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.65,
-              ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // One column per 200 dp of width, but never fewer than 2.
+                // The minimum also keeps the grid valid when Android lays
+                // out the very first frame with a width of 0.
+                final columns = max(
+                  _minColumns,
+                  constraints.maxWidth ~/ _widthPerColumn,
+                );
 
-                return ProductCard(
-                  product: product,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (context) =>
-                            ProductDetailsScreen(product: product),
-                      ),
+                return GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.65,
+                  ),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+
+                    return ProductCard(
+                      product: product,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (context) =>
+                                ProductDetailsScreen(product: product),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
