@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
+import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/category_chips.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 
@@ -54,7 +55,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               itemCount: products.length,
               itemBuilder: (context, index) {
-                return ProductCard(product: products[index]);
+                final product = products[index];
+
+                return ProductCard(
+                  product: product,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (context) =>
+                            ProductDetailsScreen(product: product),
+                      ),
+                    );
+                  },
+                );
               },
             ),
           ),
