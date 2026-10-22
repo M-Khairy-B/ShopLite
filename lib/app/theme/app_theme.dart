@@ -15,6 +15,8 @@ const Color ratingStarColor = Colors.amber;
 ThemeData buildAppTheme() {
   return ThemeData(
     colorScheme: ColorScheme.fromSeed(seedColor: _brandSeedColor),
+    // Declared in pubspec.yaml; every text style in the app uses it.
+    fontFamily: 'Poppins',
     chipTheme: const ChipThemeData(
       // Without the checkmark, selecting a chip no longer changes its width,
       // so the chips next to it don't shift sideways.

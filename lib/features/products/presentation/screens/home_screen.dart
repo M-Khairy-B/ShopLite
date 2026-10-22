@@ -32,7 +32,20 @@ class _HomeScreenState extends State<HomeScreen> {
               .toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('ShopLite')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/logo.png',
+              width: 32,
+              height: 32,
+              semanticLabel: 'ShopLite logo',
+            ),
+            const SizedBox(width: 12),
+            const Text('ShopLite'),
+          ],
+        ),
+      ),
       body: Column(
         children: [
           CategoryChips(
