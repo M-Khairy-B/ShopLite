@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:e_commerce_learn/core/utils/text_format.dart';
 
 /// A horizontally scrolling row of category filters, with "All" first.
 ///
@@ -41,11 +42,9 @@ class CategoryChips extends StatelessWidget {
   /// Builds one chip; a `null` category means the "All" chip.
   Widget _buildChip(String? category) {
     return ChoiceChip(
-      label: Text(category == null ? 'All' : _capitalize(category)),
+      label: Text(category == null ? 'All' : capitalize(category)),
       selected: category == selectedCategory,
       onSelected: (_) => onSelected(category),
     );
   }
-
-  String _capitalize(String text) => text[0].toUpperCase() + text.substring(1);
 }

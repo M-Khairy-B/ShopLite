@@ -1,19 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/category_chips.dart';
-import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
 
-/// The grid gets one column for every this many dp of width...
-const int _widthPerColumn = 200;
-
-/// ...but never fewer than this many columns.
-const int _minColumns = 2;
-
-/// The first screen of the app: category filters above a product grid
-/// whose number of columns follows the available width.
+/// The first screen of the app: category filters above a product grid.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -22,22 +13,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  /// Every category in the catalog, in the order it first appears.
-  final List<String> _categories = mockProducts
-      .map((product) => product.category)
-      .toSet()
-      .toList();
-
   /// The selected category, or `null` when "All" is selected.
   String? _selectedCategory;
 
   @override
   Widget build(BuildContext context) {
-    final products = _selectedCategory == null
+    // A local copy, so Dart can tell it is non-null after the check below.
+    final selectedCategory = _selectedCategory;
+    final products = selectedCategory == null
         ? mockProducts
-        : mockProducts
-              .where((product) => product.category == _selectedCategory)
-              .toList();
+        : findMockProductsByCategory(selectedCategory);
 
     return Scaffold(
       appBar: AppBar(
@@ -60,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CategoryChips(
-            categories: _categories,
+            categories: mockCategories,
             selectedCategory: _selectedCategory,
             onSelected: (category) {
               setState(() {
@@ -69,35 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // One column per 200 dp of width, but never fewer than 2.
-                // The minimum also keeps the grid valid when Android lays
-                // out the very first frame with a width of 0.
-                final columns = max(
-                  _minColumns,
-                  constraints.maxWidth ~/ _widthPerColumn,
-                );
-
-                return GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.65,
-                  ),
-                  itemCount: products.length,
-                  itemBuilder: (context, index) {
-                    final product = products[index];
-
-                    return ProductCard(
-                      product: product,
-                      onTap: () => context.push('/product/${product.id}'),
-                    );
-                  },
-                );
-              },
+            child: ProductGrid(
+              products: products,
+              onProductTap: (product) => context.push('/product/${product.id}'),
             ),
           ),
         ],

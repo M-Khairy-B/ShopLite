@@ -1,5 +1,16 @@
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 
+/// Every category in the mock catalog, in the order it first appears.
+final List<String> mockCategories = mockProducts
+    .map((product) => product.category)
+    .toSet()
+    .toList();
+
+/// Returns the mock products in [category] (empty if there are none).
+List<Product> findMockProductsByCategory(String category) {
+  return mockProducts.where((product) => product.category == category).toList();
+}
+
 /// Returns the mock product with this [id], or `null` if there is none.
 Product? findMockProductById(int id) {
   for (final product in mockProducts) {
