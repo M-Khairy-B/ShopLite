@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
 import 'package:e_commerce_learn/core/utils/price_formatter.dart';
+import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/quantity_selector.dart';
@@ -11,16 +12,25 @@ const double _wideLayoutBreakpoint = 600;
 
 /// Shows everything we know about one product.
 ///
-/// Opened from the home screen when a product card is tapped. On narrow
-/// screens the details scroll below the image; on wide screens (tablets,
-/// landscape phones) they sit beside it.
+/// Opened at `/product/:id`. It receives only the product's id and looks the
+/// product up itself. On narrow screens the details scroll below the image;
+/// on wide screens (tablets, landscape phones) they sit beside it.
 class ProductDetailsScreen extends StatelessWidget {
-  const ProductDetailsScreen({super.key, required this.product});
+  const ProductDetailsScreen({super.key, required this.productId});
 
-  final Product product;
+  final int productId;
 
   @override
   Widget build(BuildContext context) {
+    // Temporary: read from the mock list. In Phase 3 this becomes an API call.
+    final product = findMockProductById(productId);
+    if (product == null) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: const Center(child: Text('Product not found')),
+      );
+    }
+
     final image = ProductImage(url: product.thumbnailUrl, fit: BoxFit.contain);
 
     return Scaffold(

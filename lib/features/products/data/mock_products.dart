@@ -1,5 +1,15 @@
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 
+/// Returns the mock product with this [id], or `null` if there is none.
+Product? findMockProductById(int id) {
+  for (final product in mockProducts) {
+    if (product.id == id) {
+      return product;
+    }
+  }
+  return null;
+}
+
 /// Temporary hard-coded catalog used while we build the UI in Phase 1.
 ///
 /// The values are copied from the DummyJSON API (https://dummyjson.com),

@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
-import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/category_chips.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 
@@ -93,14 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     return ProductCard(
                       product: product,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (context) =>
-                                ProductDetailsScreen(product: product),
-                          ),
-                        );
-                      },
+                      onTap: () => context.push('/product/${product.id}'),
                     );
                   },
                 );
