@@ -82,28 +82,38 @@ class _QuantitySelectorState extends State<QuantitySelector> {
   Widget build(BuildContext context) {
     _log('build (quantity = $_quantity)');
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton.outlined(
-          tooltip: 'Decrease quantity',
-          onPressed: _quantity > 1 ? _decrement : null,
-          icon: const Icon(Icons.remove),
-        ),
-        SizedBox(
-          width: 48,
-          child: Text(
-            '$_quantity',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium,
+    // One group for screen readers: "Quantity, 1", followed by the
+    // "Decrease quantity" and "Increase quantity" buttons inside it.
+    return Semantics(
+      container: true,
+      label: 'Quantity',
+      value: '$_quantity',
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton.outlined(
+            tooltip: 'Decrease quantity',
+            onPressed: _quantity > 1 ? _decrement : null,
+            icon: const Icon(Icons.remove),
           ),
-        ),
-        IconButton.outlined(
-          tooltip: 'Increase quantity',
-          onPressed: _quantity < widget.maxQuantity ? _increment : null,
-          icon: const Icon(Icons.add),
-        ),
-      ],
+          SizedBox(
+            width: 48,
+            // Already announced as the group's value above.
+            child: ExcludeSemantics(
+              child: Text(
+                '$_quantity',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+          ),
+          IconButton.outlined(
+            tooltip: 'Increase quantity',
+            onPressed: _quantity < widget.maxQuantity ? _increment : null,
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -44,7 +44,7 @@ int _cardsInFirstRow(WidgetTester tester) {
 Widget _detailsApp() {
   return MaterialApp(
     theme: buildAppTheme(),
-    home: ProductDetailsScreen(product: mockProducts.first),
+    home: ProductDetailsScreen(productId: mockProducts.first.id),
   );
 }
 

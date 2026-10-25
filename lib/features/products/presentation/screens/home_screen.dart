@@ -1,19 +1,13 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
-import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/category_chips.dart';
-import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/sort_options_sheet.dart';
 
-/// The grid gets one column for every this many dp of width...
-const int _widthPerColumn = 200;
-
-/// ...but never fewer than this many columns.
-const int _minColumns = 2;
-
-/// The first screen of the app: category filters above a product grid
-/// whose number of columns follows the available width.
+/// The first screen of the app: category filters above a product grid.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -22,22 +16,65 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  /// Every category in the catalog, in the order it first appears.
-  final List<String> _categories = mockProducts
-      .map((product) => product.category)
-      .toSet()
-      .toList();
-
   /// The selected category, or `null` when "All" is selected.
   String? _selectedCategory;
 
+  /// The order the grid is shown in.
+  ProductSort _sort = ProductSort.featured;
+
+  /// Shows the "Sort by" sheet, applies the choice, and offers an Undo.
+  Future<void> _chooseSort() async {
+    final previous = _sort;
+
+    // The sheet is a route on top of this screen. `await` waits until it
+    // closes; the result is the tapped option, or null if dismissed.
+    final chosen = await showModalBottomSheet<ProductSort>(
+      context: context,
+      // Open on the app's top-level navigator, above the bottom navigation
+      // bar, so the sheet covers the whole app instead of only this tab.
+      useRootNavigator: true,
+      showDragHandle: true,
+      builder: (context) => SortOptionsSheet(selected: _sort),
+    );
+
+    // Nothing to do if the sheet was dismissed or the same sort was picked.
+    // `mounted` guards against this screen having been removed while the
+    // sheet was open; `context` must not be used after that.
+    if (chosen == null || chosen == previous || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _sort = chosen;
+    });
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('Showing: ${sortLabel(chosen)}'),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              if (mounted) {
+                setState(() {
+                  _sort = previous;
+                });
+              }
+            },
+          ),
+        ),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final products = _selectedCategory == null
+    // A local copy, so Dart can tell it is non-null after the check below.
+    final selectedCategory = _selectedCategory;
+    final filtered = selectedCategory == null
         ? mockProducts
-        : mockProducts
-              .where((product) => product.category == _selectedCategory)
-              .toList();
+        : findMockProductsByCategory(selectedCategory);
+    final products = sortProducts(filtered, _sort);
 
     return Scaffold(
       appBar: AppBar(
@@ -49,10 +86,17 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 32,
               semanticLabel: 'ShopLite logo',
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             const Text('ShopLite'),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Sort products',
+            icon: const Icon(Icons.sort),
+            onPressed: _chooseSort,
+          ),
+        ],
       ),
       body: Column(
         // Full width for every child, so the chip row starts at the left
@@ -60,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CategoryChips(
-            categories: _categories,
+            categories: mockCategories,
             selectedCategory: _selectedCategory,
             onSelected: (category) {
               setState(() {
@@ -69,42 +113,9 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // One column per 200 dp of width, but never fewer than 2.
-                // The minimum also keeps the grid valid when Android lays
-                // out the very first frame with a width of 0.
-                final columns = max(
-                  _minColumns,
-                  constraints.maxWidth ~/ _widthPerColumn,
-                );
-
-                return GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.65,
-                  ),
-                  itemCount: products.length,
-                  itemBuilder: (context, index) {
-                    final product = products[index];
-
-                    return ProductCard(
-                      product: product,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (context) =>
-                                ProductDetailsScreen(product: product),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
+            child: ProductGrid(
+              products: products,
+              onProductTap: (product) => context.push('/product/${product.id}'),
             ),
           ),
         ],

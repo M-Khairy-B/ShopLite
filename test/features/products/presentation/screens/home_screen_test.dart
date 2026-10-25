@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:e_commerce_learn/app/app.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
@@ -28,7 +29,8 @@ void main() {
   testWidgets('tapping a product opens its details, back returns home', (
     tester,
   ) async {
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    // Navigation needs the app's router, so start the whole app.
+    await tester.pumpWidget(const ShopLiteApp());
 
     await tester.tap(find.byType(ProductCard).first);
     await tester.pumpAndSettle();
