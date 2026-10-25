@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/core/utils/text_format.dart';
+import 'package:e_commerce_learn/core/widgets/empty_view.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
 
@@ -18,7 +19,15 @@ class CategoryProductsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(capitalize(category))),
       body: products.isEmpty
-          ? const Center(child: Text('No products in this category.'))
+          ? EmptyView(
+              icon: Icons.category_outlined,
+              title: 'No products here',
+              message: 'There are no products in this category yet.',
+              action: FilledButton(
+                onPressed: () => context.go('/categories'),
+                child: const Text('See all categories'),
+              ),
+            )
           : ProductGrid(
               products: products,
               // Stay inside the Categories tab: this product page is nested

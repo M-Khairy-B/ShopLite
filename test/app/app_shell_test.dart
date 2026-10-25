@@ -71,6 +71,22 @@ void main() {
     expect(find.byType(HomeScreen), findsOneWidget);
   });
 
+  testWidgets('the empty cart leads back to shopping', (tester) async {
+    await tester.pumpWidget(const ShopLiteApp());
+
+    await _tapTab(tester, 'Cart');
+    expect(find.text('Your cart is empty'), findsOneWidget);
+
+    await tester.tap(find.text('Start shopping'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+    final navigationBar = tester.widget<NavigationBar>(
+      find.byType(NavigationBar),
+    );
+    expect(navigationBar.selectedIndex, 0); // the Home tab
+  });
+
   testWidgets('Home keeps its selected category while you visit another tab', (
     tester,
   ) async {

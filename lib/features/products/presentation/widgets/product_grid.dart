@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 
@@ -38,11 +39,11 @@ class ProductGrid extends StatelessWidget {
         );
 
         return GridView.builder(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.md),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
+            mainAxisSpacing: AppSpacing.md,
+            crossAxisSpacing: AppSpacing.md,
             childAspectRatio: 0.65,
           ),
           itemCount: products.length,

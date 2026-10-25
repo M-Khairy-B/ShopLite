@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/core/utils/text_format.dart';
 
 /// A horizontally scrolling row of category filters, with "All" first.
@@ -28,9 +29,12 @@ class CategoryChips extends StatelessWidget {
     // There are only a few categories, so building them all at once is fine.
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       child: Row(
-        spacing: 8,
+        spacing: AppSpacing.sm,
         children: [
           _buildChip(null),
           for (final category in categories) _buildChip(category),

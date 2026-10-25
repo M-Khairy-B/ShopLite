@@ -51,6 +51,17 @@ void main() {
     expect(find.text("This page doesn't exist."), findsOneWidget);
   });
 
+  testWidgets('"Back to home" on page not found returns to the catalog', (
+    tester,
+  ) async {
+    await _pumpAt(tester, '/nope');
+
+    await tester.tap(find.text('Back to home'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+  });
+
   group('Categories tab', () {
     testWidgets('tapping a category shows only its products', (tester) async {
       await _pumpAt(tester, '/categories');
@@ -96,7 +107,12 @@ void main() {
     testWidgets('an unknown category shows a message', (tester) async {
       await _pumpAt(tester, '/categories/furniture');
 
-      expect(find.text('No products in this category.'), findsOneWidget);
+      expect(find.text('No products here'), findsOneWidget);
+
+      await tester.tap(find.text('See all categories'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CategoriesScreen), findsOneWidget);
     });
   });
 }

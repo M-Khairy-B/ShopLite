@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
 import 'package:e_commerce_learn/core/utils/price_formatter.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
@@ -30,7 +31,7 @@ class ProductCard extends StatelessWidget {
           children: [
             Expanded(child: ProductImage(url: product.thumbnailUrl)),
             Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -40,7 +41,7 @@ class ProductCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.titleSmall,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     formatPrice(product.priceCents),
                     style: textTheme.titleMedium?.copyWith(
@@ -48,11 +49,11 @@ class ProductCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
                       const Icon(Icons.star, size: 16, color: ratingStarColor),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         product.rating.toStringAsFixed(1),
                         style: textTheme.bodySmall,

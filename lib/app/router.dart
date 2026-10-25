@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/app_shell.dart';
+import 'package:e_commerce_learn/core/widgets/empty_view.dart';
 import 'package:e_commerce_learn/features/cart/presentation/screens/cart_screen.dart';
 import 'package:e_commerce_learn/features/categories/presentation/screens/categories_screen.dart';
 import 'package:e_commerce_learn/features/categories/presentation/screens/category_products_screen.dart';
@@ -98,7 +99,15 @@ class _PageNotFoundScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: const Center(child: Text("This page doesn't exist.")),
+      body: EmptyView(
+        icon: Icons.explore_off_outlined,
+        title: 'Page not found',
+        message: "This page doesn't exist.",
+        action: FilledButton(
+          onPressed: () => context.go('/'),
+          child: const Text('Back to home'),
+        ),
+      ),
     );
   }
 }

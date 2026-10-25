@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/category_chips.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
@@ -34,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 32,
               semanticLabel: 'ShopLite logo',
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md),
             const Text('ShopLite'),
           ],
         ),
