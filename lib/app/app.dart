@@ -26,6 +26,9 @@ class _ShopLiteAppState extends State<ShopLiteApp> {
     return MaterialApp.router(
       title: 'ShopLite',
       theme: buildAppTheme(),
+      darkTheme: buildAppTheme(brightness: Brightness.dark),
+      // Follow the phone's light/dark setting.
+      themeMode: ThemeMode.system,
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
     );

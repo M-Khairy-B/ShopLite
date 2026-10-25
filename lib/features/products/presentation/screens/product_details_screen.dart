@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
 import 'package:e_commerce_learn/core/utils/price_formatter.dart';
+import 'package:e_commerce_learn/core/utils/text_format.dart';
 import 'package:e_commerce_learn/core/widgets/empty_view.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
@@ -93,7 +94,12 @@ class _ProductInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(product.title, style: textTheme.headlineSmall),
+          // A heading: screen-reader users can jump between headings.
+          Semantics(
+            container: true,
+            header: true,
+            child: Text(product.title, style: textTheme.headlineSmall),
+          ),
           const SizedBox(height: AppSpacing.sm),
           Text(
             formatPrice(product.priceCents),
@@ -109,6 +115,7 @@ class _ProductInfo extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text(
                 product.rating.toStringAsFixed(1),
+                semanticsLabel: ratingSemanticsLabel(product.rating),
                 style: textTheme.bodyLarge,
               ),
             ],
@@ -118,7 +125,13 @@ class _ProductInfo extends StatelessWidget {
             children: [
               // Expanded (not Spacer) lets the label shrink and wrap when
               // large text leaves too little room beside the selector.
-              Expanded(child: Text('Quantity', style: textTheme.titleMedium)),
+              // Hidden from screen readers: the selector itself announces
+              // "Quantity", so reading this label too would say it twice.
+              Expanded(
+                child: ExcludeSemantics(
+                  child: Text('Quantity', style: textTheme.titleMedium),
+                ),
+              ),
               const QuantitySelector(),
             ],
           ),

@@ -12,9 +12,16 @@ const Color _brandSeedColor = Colors.deepPurple;
 const Color ratingStarColor = Colors.amber;
 
 /// Builds the app's theme: colors, text styles, and component defaults.
-ThemeData buildAppTheme() {
+///
+/// The light and dark themes come from the same seed color, so both feel
+/// like the same brand. Widgets use color roles (`colorScheme.primary`...),
+/// which is why they need no changes to work in dark mode.
+ThemeData buildAppTheme({Brightness brightness = Brightness.light}) {
   return ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: _brandSeedColor),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: _brandSeedColor,
+      brightness: brightness,
+    ),
     // Declared in pubspec.yaml; every text style in the app uses it.
     fontFamily: 'Poppins',
     chipTheme: const ChipThemeData(

@@ -15,4 +15,10 @@ void main() {
       expect(capitalize(''), '');
     });
   });
+
+  group('ratingSemanticsLabel', () {
+    test('says the rating with one decimal, out of 5', () {
+      expect(ratingSemanticsLabel(2.56), 'Rated 2.6 out of 5');
+    });
+  });
 }
