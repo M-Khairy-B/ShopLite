@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
+
+import '../../../../helpers/pump_app.dart';
 
 /// The id of the product shown in the first grid cell.
 int _firstProductId(WidgetTester tester) {
@@ -23,7 +24,7 @@ Future<void> _chooseSort(WidgetTester tester, String label) async {
 
 void main() {
   testWidgets('choosing a sort reorders the grid', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await pumpHomeScreen(tester);
     expect(_firstProductId(tester), 1);
 
     await _chooseSort(tester, 'Price: high to low');
@@ -34,7 +35,7 @@ void main() {
   testWidgets('a snackbar confirms the sort, and Undo restores the order', (
     tester,
   ) async {
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await pumpHomeScreen(tester);
 
     await _chooseSort(tester, 'Price: high to low');
     expect(find.text('Showing: Price: high to low'), findsOneWidget);
@@ -48,7 +49,7 @@ void main() {
   testWidgets('closing the sheet without choosing changes nothing', (
     tester,
   ) async {
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await pumpHomeScreen(tester);
 
     await _openSortSheet(tester);
     await tester.tapAt(const Offset(20, 20)); // the dimmed area above it
@@ -61,7 +62,7 @@ void main() {
   testWidgets('sorting works together with the category filter', (
     tester,
   ) async {
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await pumpHomeScreen(tester);
 
     await tester.tap(find.text('Laptops'));
     await tester.pump();
@@ -71,7 +72,7 @@ void main() {
   });
 
   testWidgets('the sheet marks the current sort', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await pumpHomeScreen(tester);
 
     await _chooseSort(tester, 'Top rated');
     await _openSortSheet(tester);
@@ -91,7 +92,7 @@ void main() {
     tester.platformDispatcher.textScaleFactorTestValue = 2.0;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await pumpHomeScreen(tester);
     await _openSortSheet(tester);
 
     expect(tester.takeException(), isNull);

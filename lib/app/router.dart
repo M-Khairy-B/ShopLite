@@ -32,7 +32,8 @@ GoRouter createAppRouter({
             routes: [
               GoRoute(
                 path: '/',
-                builder: (context, state) => const HomeScreen(),
+                builder: (context, state) =>
+                    HomeScreen(repository: productsRepository),
                 // Nested under '/', so opening '/product/78' directly
                 // still puts the home screen underneath it.
                 routes: [_productDetailsRoute(productsRepository)],

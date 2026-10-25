@@ -24,12 +24,16 @@ class FakeProductsRepository implements ProductsRepository {
   int getProductsCalls = 0;
   int getProductCalls = 0;
 
+  /// Every page that was asked for, in order.
+  final requestedPages = <({int skip, int limit})>[];
+
   @override
   Future<ProductsPage> getProducts({
     required int skip,
     required int limit,
   }) async {
     getProductsCalls++;
+    requestedPages.add((skip: skip, limit: limit));
     await _waitThenMaybeFail();
     return ProductsPage(
       products: products.skip(skip).take(limit).toList(),

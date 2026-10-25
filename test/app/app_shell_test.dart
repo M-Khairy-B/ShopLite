@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:e_commerce_learn/app/app.dart';
 import 'package:e_commerce_learn/features/cart/presentation/screens/cart_screen.dart';
 import 'package:e_commerce_learn/features/categories/presentation/screens/categories_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
@@ -8,7 +7,7 @@ import 'package:e_commerce_learn/features/products/presentation/screens/product_
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 import 'package:e_commerce_learn/features/profile/presentation/screens/profile_screen.dart';
 
-import '../helpers/fake_products_repository.dart';
+import '../helpers/pump_app.dart';
 
 /// Taps a bottom-navigation tab by its label and waits for the transition.
 Future<void> _tapTab(WidgetTester tester, String label) async {
@@ -20,9 +19,7 @@ Future<void> _tapTab(WidgetTester tester, String label) async {
 
 void main() {
   testWidgets('shows four tabs and starts on Home', (tester) async {
-    await tester.pumpWidget(
-      ShopLiteApp(productsRepository: FakeProductsRepository()),
-    );
+    await pumpShopLiteApp(tester);
 
     expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(NavigationDestination), findsNWidgets(4));
@@ -30,9 +27,7 @@ void main() {
   });
 
   testWidgets('each tab shows its own screen', (tester) async {
-    await tester.pumpWidget(
-      ShopLiteApp(productsRepository: FakeProductsRepository()),
-    );
+    await pumpShopLiteApp(tester);
 
     await _tapTab(tester, 'Categories');
     expect(find.byType(CategoriesScreen), findsOneWidget);
@@ -50,9 +45,7 @@ void main() {
   testWidgets('a tab keeps its own stack while you visit another tab', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      ShopLiteApp(productsRepository: FakeProductsRepository()),
-    );
+    await pumpShopLiteApp(tester);
 
     await tester.tap(find.byType(ProductCard).first);
     await tester.pumpAndSettle();
@@ -68,9 +61,7 @@ void main() {
   testWidgets('tapping the active tab again returns to its first screen', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      ShopLiteApp(productsRepository: FakeProductsRepository()),
-    );
+    await pumpShopLiteApp(tester);
 
     await tester.tap(find.byType(ProductCard).first);
     await tester.pumpAndSettle();
@@ -82,9 +73,7 @@ void main() {
   });
 
   testWidgets('the sort sheet covers the navigation bar', (tester) async {
-    await tester.pumpWidget(
-      ShopLiteApp(productsRepository: FakeProductsRepository()),
-    );
+    await pumpShopLiteApp(tester);
 
     await tester.tap(find.byTooltip('Sort products'));
     await tester.pumpAndSettle();
@@ -106,9 +95,7 @@ void main() {
   });
 
   testWidgets('the empty cart leads back to shopping', (tester) async {
-    await tester.pumpWidget(
-      ShopLiteApp(productsRepository: FakeProductsRepository()),
-    );
+    await pumpShopLiteApp(tester);
 
     await _tapTab(tester, 'Cart');
     expect(find.text('Your cart is empty'), findsOneWidget);
@@ -126,9 +113,7 @@ void main() {
   testWidgets('Home keeps its selected category while you visit another tab', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      ShopLiteApp(productsRepository: FakeProductsRepository()),
-    );
+    await pumpShopLiteApp(tester);
 
     await tester.tap(find.text('Laptops'));
     await tester.pump();

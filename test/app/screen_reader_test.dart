@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/quantity_selector.dart';
 
 import '../helpers/fake_products_repository.dart';
+import '../helpers/pump_app.dart';
 
 /// What a screen reader (TalkBack, VoiceOver) announces for these widgets.
 void main() {
@@ -13,7 +13,7 @@ void main() {
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
-    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await pumpHomeScreen(tester);
 
     final card = tester.getSemantics(find.byType(ProductCard).first);
     expect(card, isSemantics(isButton: true, hasTapAction: true));
