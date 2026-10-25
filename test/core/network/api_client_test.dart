@@ -1,50 +1,20 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/network/api_client.dart';
 
+import '../../helpers/fake_http.dart';
+
 const _baseUrl = 'https://api.example.test';
-
-/// Stands in for the network: remembers the last request and answers it with
-/// whatever [respond] returns, or fails the way [respond] fails. No real
-/// connection is made.
-class _FakeAdapter implements HttpClientAdapter {
-  _FakeAdapter(this.respond);
-
-  final ResponseBody Function(RequestOptions request) respond;
-  RequestOptions? lastRequest;
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<Uint8List>? requestStream,
-    Future<void>? cancelFuture,
-  ) async {
-    lastRequest = options;
-    return respond(options);
-  }
-
-  @override
-  void close({bool force = false}) {}
-}
-
-/// A JSON response with [body] and [statusCode], like a real server sends.
-ResponseBody _jsonResponse(String body, {int statusCode = 200}) {
-  return ResponseBody.fromString(
-    body,
-    statusCode,
-    headers: {
-      Headers.contentTypeHeader: [Headers.jsonContentType],
-    },
-  );
-}
 
 /// An [ApiClient] whose "network" answers every request with [respond].
 ApiClient _clientThat(ResponseBody Function(RequestOptions request) respond) {
-  return ApiClient(baseUrl: _baseUrl, httpClientAdapter: _FakeAdapter(respond));
+  return ApiClient(
+    baseUrl: _baseUrl,
+    httpClientAdapter: FakeHttpAdapter(respond),
+  );
 }
 
 void main() {
@@ -52,7 +22,7 @@ void main() {
     test(
       'sends a GET to the base URL + path, with the query parameters',
       () async {
-        final adapter = _FakeAdapter((_) => _jsonResponse('{}'));
+        final adapter = FakeHttpAdapter((_) => jsonResponse('{}'));
         final client = ApiClient(baseUrl: _baseUrl, httpClientAdapter: adapter);
 
         await client.getJson(
@@ -70,9 +40,9 @@ void main() {
     );
 
     test('returns the decoded JSON body', () async {
-      final fixture = File('test/fixtures/products_page.json')
-          .readAsStringSync();
-      final client = _clientThat((_) => _jsonResponse(fixture));
+      final client = _clientThat(
+        (_) => jsonResponse(readFixture('products_page.json')),
+      );
 
       final json = await client.getJson('/products');
 
@@ -81,7 +51,7 @@ void main() {
     });
 
     test('gives up on slow connections and slow responses', () async {
-      final adapter = _FakeAdapter((_) => _jsonResponse('{}'));
+      final adapter = FakeHttpAdapter((_) => jsonResponse('{}'));
       final client = ApiClient(baseUrl: _baseUrl, httpClientAdapter: adapter);
 
       await client.getJson('/products');
@@ -94,7 +64,7 @@ void main() {
   group('failures become our own error types', () {
     test('404 → NotFoundException', () async {
       final client = _clientThat(
-        (_) => _jsonResponse(
+        (_) => jsonResponse(
           '{"message": "Product with id \'99999\' not found"}',
           statusCode: 404,
         ),
@@ -108,7 +78,7 @@ void main() {
 
     test('500 → ServerException with the status code', () async {
       final client = _clientThat(
-        (_) => _jsonResponse('{"message": "oops"}', statusCode: 500),
+        (_) => jsonResponse('{"message": "oops"}', statusCode: 500),
       );
 
       await expectLater(
@@ -181,7 +151,7 @@ void main() {
     test(
       'a body that is not a JSON object → UnexpectedResponseException',
       () async {
-        final client = _clientThat((_) => _jsonResponse('[1, 2, 3]'));
+        final client = _clientThat((_) => jsonResponse('[1, 2, 3]'));
 
         await expectLater(
           client.getJson('/products'),
@@ -193,7 +163,7 @@ void main() {
     test(
       'a body that is not valid JSON → UnexpectedResponseException',
       () async {
-        final client = _clientThat((_) => _jsonResponse('<html>Oops</html>'));
+        final client = _clientThat((_) => jsonResponse('<html>Oops</html>'));
 
         await expectLater(
           client.getJson('/products'),
