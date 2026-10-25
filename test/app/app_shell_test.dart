@@ -71,6 +71,28 @@ void main() {
     expect(find.byType(HomeScreen), findsOneWidget);
   });
 
+  testWidgets('the sort sheet covers the navigation bar', (tester) async {
+    await tester.pumpWidget(const ShopLiteApp());
+
+    await tester.tap(find.byTooltip('Sort products'));
+    await tester.pumpAndSettle();
+
+    // Tap where the Cart tab is. A modal sheet should cover the whole app,
+    // so this tap must only close the sheet, not switch tabs.
+    final cartTab = find.descendant(
+      of: find.byType(NavigationBar),
+      matching: find.text('Cart'),
+    );
+    await tester.tapAt(tester.getCenter(cartTab));
+    await tester.pumpAndSettle();
+
+    final navigationBar = tester.widget<NavigationBar>(
+      find.byType(NavigationBar),
+    );
+    expect(navigationBar.selectedIndex, 0); // still on Home
+    expect(find.text('Sort by'), findsNothing); // the sheet closed
+  });
+
   testWidgets('the empty cart leads back to shopping', (tester) async {
     await tester.pumpWidget(const ShopLiteApp());
 
