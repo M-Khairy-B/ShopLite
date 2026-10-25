@@ -17,17 +17,4 @@ void main() {
       expect(findMockProductsByCategory('furniture'), isEmpty);
     });
   });
-
-  group('findMockProductById', () {
-    test('returns the product with that id', () {
-      expect(
-        findMockProductById(78)?.title,
-        'Apple MacBook Pro 14 Inch Space Grey',
-      );
-    });
-
-    test('returns null for an id that does not exist', () {
-      expect(findMockProductById(999999), isNull);
-    });
-  });
 }

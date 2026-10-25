@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:e_commerce_learn/app/app.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
+
+import 'helpers/pump_app.dart';
 
 void main() {
   testWidgets('App starts on the home screen with a product grid', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ShopLiteApp());
+    await pumpShopLiteApp(tester);
 
     expect(find.text('ShopLite'), findsOneWidget);
     expect(

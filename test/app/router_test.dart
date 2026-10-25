@@ -7,9 +7,14 @@ import 'package:e_commerce_learn/features/products/presentation/screens/home_scr
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 
+import '../helpers/fake_products_repository.dart';
+
 /// Starts a router-based app on [location], like opening a link to it.
 Future<void> _pumpAt(WidgetTester tester, String location) async {
-  final router = createAppRouter(initialLocation: location);
+  final router = createAppRouter(
+    productsRepository: FakeProductsRepository(),
+    initialLocation: location,
+  );
   addTearDown(router.dispose);
 
   await tester.pumpWidget(MaterialApp.router(routerConfig: router));

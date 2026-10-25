@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:e_commerce_learn/app/app.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
+
+import '../../../helpers/fake_products_repository.dart';
+import '../../../helpers/pump_app.dart';
 
 // Screen sizes in physical pixels, with the pixel ratio of each device.
 const _phonePortrait = Size(1080, 2400); // 411 x 914 dp at 2.625
@@ -44,7 +46,10 @@ int _cardsInFirstRow(WidgetTester tester) {
 Widget _detailsApp() {
   return MaterialApp(
     theme: buildAppTheme(),
-    home: ProductDetailsScreen(productId: mockProducts.first.id),
+    home: ProductDetailsScreen(
+      productId: mockProducts.first.id,
+      repository: FakeProductsRepository(),
+    ),
   );
 }
 
@@ -52,14 +57,14 @@ void main() {
   group('Home screen', () {
     testWidgets('shows 2 columns on a phone', (tester) async {
       _setScreen(tester, _phonePortrait, _phonePixelRatio);
-      await tester.pumpWidget(const ShopLiteApp());
+      await pumpShopLiteApp(tester);
 
       expect(_cardsInFirstRow(tester), 2);
     });
 
     testWidgets('shows more columns on a tablet', (tester) async {
       _setScreen(tester, _tabletPortrait, _tabletPixelRatio);
-      await tester.pumpWidget(const ShopLiteApp());
+      await pumpShopLiteApp(tester);
 
       expect(_cardsInFirstRow(tester), 4);
     });
@@ -67,9 +72,12 @@ void main() {
     testWidgets('has no overflow with the largest text size', (tester) async {
       _setScreen(tester, _phonePortrait, _phonePixelRatio);
       _setTextScale(tester, _largestTextScale);
-      await tester.pumpWidget(const ShopLiteApp());
+      await pumpShopLiteApp(tester);
 
       expect(tester.takeException(), isNull);
+      // Prove the catalog was really laid out, so "no exception" means
+      // something (a loading spinner can never overflow).
+      expect(find.byType(GridView), findsOneWidget);
     });
 
     testWidgets('category chips grow to fit the largest text size', (
@@ -77,7 +85,7 @@ void main() {
     ) async {
       _setScreen(tester, _phonePortrait, _phonePixelRatio);
       _setTextScale(tester, _largestTextScale);
-      await tester.pumpWidget(const ShopLiteApp());
+      await pumpShopLiteApp(tester);
 
       // Chips clip their label instead of throwing an overflow error, so we
       // check directly that the label fits inside its chip.
@@ -90,7 +98,7 @@ void main() {
       tester,
     ) async {
       _setScreen(tester, _phoneLandscape, _phonePixelRatio);
-      await tester.pumpWidget(const ShopLiteApp());
+      await pumpShopLiteApp(tester);
 
       // 12 dp is the chip row's horizontal padding.
       expect(tester.getTopLeft(find.byType(ChoiceChip).first).dx, 12);
@@ -100,16 +108,22 @@ void main() {
       // Android can lay out the very first frame before the window has its
       // real size, so the screen must not throw when its width is 0.
       _setScreen(tester, Size.zero, _phonePixelRatio);
-      await tester.pumpWidget(const ShopLiteApp());
+      await pumpShopLiteApp(tester);
 
       expect(tester.takeException(), isNull);
+      // Prove the catalog was really laid out, so "no exception" means
+      // something (a loading spinner can never overflow).
+      expect(find.byType(GridView), findsOneWidget);
     });
 
     testWidgets('has no overflow on a landscape phone', (tester) async {
       _setScreen(tester, _phoneLandscape, _phonePixelRatio);
-      await tester.pumpWidget(const ShopLiteApp());
+      await pumpShopLiteApp(tester);
 
       expect(tester.takeException(), isNull);
+      // Prove the catalog was really laid out, so "no exception" means
+      // something (a loading spinner can never overflow).
+      expect(find.byType(GridView), findsOneWidget);
     });
   });
 
@@ -118,6 +132,7 @@ void main() {
       _setScreen(tester, _phonePortrait, _phonePixelRatio);
       _setTextScale(tester, _largestTextScale);
       await tester.pumpWidget(_detailsApp());
+      await tester.pumpAndSettle(); // wait for the product to load
 
       expect(tester.takeException(), isNull);
     });
@@ -127,6 +142,7 @@ void main() {
     ) async {
       _setScreen(tester, _phoneLandscape, _phonePixelRatio);
       await tester.pumpWidget(_detailsApp());
+      await tester.pumpAndSettle(); // wait for the product to load
 
       final title = find.text(mockProducts.first.title);
       expect(title, findsOneWidget);
