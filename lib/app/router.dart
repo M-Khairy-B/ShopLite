@@ -5,6 +5,7 @@ import 'package:e_commerce_learn/core/widgets/empty_view.dart';
 import 'package:e_commerce_learn/features/cart/presentation/screens/cart_screen.dart';
 import 'package:e_commerce_learn/features/categories/presentation/screens/categories_screen.dart';
 import 'package:e_commerce_learn/features/categories/presentation/screens/category_products_screen.dart';
+import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/profile/presentation/screens/profile_screen.dart';
@@ -12,8 +13,12 @@ import 'package:e_commerce_learn/features/profile/presentation/screens/profile_s
 /// Creates the app's router: the map from URL-style paths to screens.
 ///
 /// Create it once for the app's lifetime (see `ShopLiteApp`), never inside a
-/// `build` method. [initialLocation] lets tests start on any page.
-GoRouter createAppRouter({String initialLocation = '/'}) {
+/// `build` method. Screens that load products get [productsRepository];
+/// [initialLocation] lets tests start on any page.
+GoRouter createAppRouter({
+  required ProductsRepository productsRepository,
+  String initialLocation = '/',
+}) {
   return GoRouter(
     initialLocation: initialLocation,
     routes: [
@@ -30,7 +35,7 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
                 builder: (context, state) => const HomeScreen(),
                 // Nested under '/', so opening '/product/78' directly
                 // still puts the home screen underneath it.
-                routes: [_productDetailsRoute()],
+                routes: [_productDetailsRoute(productsRepository)],
               ),
             ],
           ),
@@ -47,7 +52,7 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
                     ),
                     // '/categories/laptops/product/78' keeps the product
                     // inside the Categories tab.
-                    routes: [_productDetailsRoute()],
+                    routes: [_productDetailsRoute(productsRepository)],
                   ),
                 ],
               ),
@@ -78,7 +83,7 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
 
 /// The `product/:id` route. Used in more than one tab, so that a product
 /// opens inside whichever tab you are in.
-GoRoute _productDetailsRoute() {
+GoRoute _productDetailsRoute(ProductsRepository productsRepository) {
   return GoRoute(
     path: 'product/:id',
     builder: (context, state) {
@@ -86,7 +91,10 @@ GoRoute _productDetailsRoute() {
       if (id == null) {
         return const _PageNotFoundScreen();
       }
-      return ProductDetailsScreen(productId: id);
+      return ProductDetailsScreen(
+        productId: id,
+        repository: productsRepository,
+      );
     },
   );
 }

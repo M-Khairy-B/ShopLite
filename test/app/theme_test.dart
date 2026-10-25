@@ -4,6 +4,8 @@ import 'package:e_commerce_learn/app/app.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 
+import '../helpers/fake_products_repository.dart';
+
 /// The brightness of the theme the home screen is actually drawn with.
 Brightness _homeBrightness(WidgetTester tester) {
   return Theme.of(tester.element(find.byType(HomeScreen))).brightness;
@@ -27,7 +29,9 @@ void main() {
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
-    await tester.pumpWidget(const ShopLiteApp());
+    await tester.pumpWidget(
+      ShopLiteApp(productsRepository: FakeProductsRepository()),
+    );
 
     expect(_homeBrightness(tester), Brightness.light);
   });
@@ -36,7 +40,9 @@ void main() {
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
-    await tester.pumpWidget(const ShopLiteApp());
+    await tester.pumpWidget(
+      ShopLiteApp(productsRepository: FakeProductsRepository()),
+    );
 
     expect(_homeBrightness(tester), Brightness.dark);
   });

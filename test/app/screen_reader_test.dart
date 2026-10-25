@@ -5,6 +5,8 @@ import 'package:e_commerce_learn/features/products/presentation/screens/product_
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/quantity_selector.dart';
 
+import '../helpers/fake_products_repository.dart';
+
 /// What a screen reader (TalkBack, VoiceOver) announces for these widgets.
 void main() {
   testWidgets('a product card is a button that says "Rated … out of 5"', (
@@ -25,8 +27,14 @@ void main() {
   ) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
-      const MaterialApp(home: ProductDetailsScreen(productId: 1)),
+      MaterialApp(
+        home: ProductDetailsScreen(
+          productId: 1,
+          repository: FakeProductsRepository(),
+        ),
+      ),
     );
+    await tester.pumpAndSettle(); // wait for the product to load
 
     expect(
       tester.getSemantics(find.text('Essence Mascara Lash Princess')),

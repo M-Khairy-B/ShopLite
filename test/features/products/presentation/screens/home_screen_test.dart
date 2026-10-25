@@ -5,6 +5,8 @@ import 'package:e_commerce_learn/features/products/presentation/screens/home_scr
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 
+import '../../../../helpers/fake_products_repository.dart';
+
 void main() {
   testWidgets('shows an All chip and one chip per category', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
@@ -30,7 +32,9 @@ void main() {
     tester,
   ) async {
     // Navigation needs the app's router, so start the whole app.
-    await tester.pumpWidget(const ShopLiteApp());
+    await tester.pumpWidget(
+      ShopLiteApp(productsRepository: FakeProductsRepository()),
+    );
 
     await tester.tap(find.byType(ProductCard).first);
     await tester.pumpAndSettle();
