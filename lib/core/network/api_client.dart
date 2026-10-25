@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:e_commerce_learn/core/errors/app_exception.dart';
 
 /// The one place in the app that talks HTTP.
 ///
@@ -38,22 +41,50 @@ class ApiClient {
 
   /// Sends a GET request to [path] and returns the JSON object it answers.
   ///
-  /// Throws a [DioException] for network problems and error status codes
-  /// (4xx, 5xx), and a [FormatException] if the body isn't a JSON object.
+  /// Every failure is thrown as an [AppException]: network problems, error
+  /// status codes (4xx, 5xx), and bodies that aren't a JSON object.
   Future<Map<String, dynamic>> getJson(
     String path, {
     Map<String, Object?>? queryParameters,
   }) async {
-    final response = await _dio.get<Object?>(
-      path,
-      queryParameters: queryParameters,
-    );
+    final Response<Object?> response;
+    try {
+      response = await _dio.get<Object?>(
+        path,
+        queryParameters: queryParameters,
+      );
+    } on DioException catch (error) {
+      throw _toAppException(error);
+    }
 
     return switch (response.data) {
       final Map<String, dynamic> json => json,
-      final other => throw FormatException(
-        'Expected a JSON object from $path, got: $other',
-      ),
+      _ => throw const UnexpectedResponseException(),
     };
   }
+}
+
+/// Translates one of dio's errors into the app's own [AppException].
+///
+/// This is the only place in the app that knows about dio's error types.
+AppException _toAppException(DioException error) {
+  return switch (error.type) {
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout ||
+    DioExceptionType.transformTimeout => const RequestTimeoutException(),
+    DioExceptionType.connectionError ||
+    DioExceptionType.badCertificate => const NetworkException(),
+    DioExceptionType.badResponse => switch (error.response?.statusCode) {
+      404 => const NotFoundException(),
+      final statusCode => ServerException(statusCode),
+    },
+    DioExceptionType.cancel => const UnknownException(),
+    // "unknown" wraps errors dio didn't classify: look at the original one.
+    DioExceptionType.unknown => switch (error.error) {
+      SocketException() => const NetworkException(),
+      FormatException() => const UnexpectedResponseException(),
+      _ => const UnknownException(),
+    },
+  };
 }
