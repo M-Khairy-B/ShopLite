@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/theme/app_spacing.dart';
-import 'package:e_commerce_learn/core/errors/app_exception.dart';
+import 'package:e_commerce_learn/core/widgets/empty_view.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
-import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
 import 'package:e_commerce_learn/features/products/data/product_catalog.dart';
 import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
+import 'package:e_commerce_learn/features/products/presentation/cubits/products_cubit.dart';
+import 'package:e_commerce_learn/features/products/presentation/cubits/products_state.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/category_chips.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/sort_options_sheet.dart';
@@ -23,37 +25,14 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+/// The catalog itself is loaded by a [ProductsCubit]. The user's choices
+/// (category and sort) are UI state, so they stay here, and survive a retry.
 class _HomeScreenState extends State<HomeScreen> {
-  /// How many products to load. Only the first page for now: Phase 5 loads
-  /// more while the user scrolls.
-  static const _pageSize = 30;
-
-  /// The request for the first page of the catalog. Started once in
-  /// [initState], not in build(), so rebuilding the screen doesn't send the
-  /// request again.
-  late Future<ProductsPage> _page;
-
   /// The selected category, or `null` when "All" is selected.
   String? _selectedCategory;
 
   /// The order the grid is shown in.
   ProductSort _sort = ProductSort.featured;
-
-  @override
-  void initState() {
-    super.initState();
-    _page = _loadFirstPage();
-  }
-
-  Future<ProductsPage> _loadFirstPage() {
-    return widget.repository.getProducts(skip: 0, limit: _pageSize);
-  }
-
-  void _retry() {
-    setState(() {
-      _page = _loadFirstPage();
-    });
-  }
 
   /// Shows the "Sort by" sheet, applies the choice, and offers an Undo.
   Future<void> _chooseSort() async {
@@ -102,47 +81,48 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/images/logo.png',
-              width: 32,
-              height: 32,
-              semanticLabel: 'ShopLite logo',
+    return BlocProvider(
+      // `create` runs once, not on every setState() of this screen.
+      create: (context) => ProductsCubit(repository: widget.repository)..load(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: [
+              Image.asset(
+                'assets/images/logo.png',
+                width: 32,
+                height: 32,
+                semanticLabel: 'ShopLite logo',
+              ),
+              const SizedBox(width: AppSpacing.md),
+              const Text('ShopLite'),
+            ],
+          ),
+          actions: [
+            IconButton(
+              tooltip: 'Sort products',
+              icon: const Icon(Icons.sort),
+              onPressed: _chooseSort,
             ),
-            const SizedBox(width: AppSpacing.md),
-            const Text('ShopLite'),
           ],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Sort products',
-            icon: const Icon(Icons.sort),
-            onPressed: _chooseSort,
-          ),
-        ],
-      ),
-      body: FutureBuilder<ProductsPage>(
-        future: _page,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const LoadingView();
-          }
-
-          final error = snapshot.error;
-          if (error != null) {
-            return ErrorView(
-              // The repository promises AppExceptions only; anything else is
-              // a bug, but the user still gets a way to retry.
-              error: error is AppException ? error : const UnknownException(),
-              onRetry: _retry,
-            );
-          }
-
-          return _buildCatalog(snapshot.requireData.products);
-        },
+        body: BlocBuilder<ProductsCubit, ProductsState>(
+          builder: (context, state) {
+            return switch (state) {
+              ProductsLoading() => const LoadingView(),
+              ProductsLoaded(:final products) => _buildCatalog(products),
+              ProductsEmpty() => const EmptyView(
+                icon: Icons.storefront_outlined,
+                title: 'No products yet',
+                message: 'New products will show up here.',
+              ),
+              ProductsError(:final error) => ErrorView(
+                error: error,
+                onRetry: () => context.read<ProductsCubit>().load(),
+              ),
+            };
+          },
+        ),
       ),
     );
   }

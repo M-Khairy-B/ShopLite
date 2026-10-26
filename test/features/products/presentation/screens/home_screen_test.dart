@@ -69,6 +69,16 @@ void main() {
       expect(repository.getProductsCalls, 1);
     });
 
+    testWidgets('an empty catalog says so, without chips', (tester) async {
+      await pumpHomeScreen(
+        tester,
+        repository: FakeProductsRepository(products: const []),
+      );
+
+      expect(find.text('No products yet'), findsOneWidget);
+      expect(find.text('All'), findsNothing);
+    });
+
     testWidgets('the chips come from the loaded products', (tester) async {
       // A catalog with only furniture and groceries in it.
       final repository = FakeProductsRepository(
