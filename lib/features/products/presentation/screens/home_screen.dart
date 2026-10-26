@@ -105,11 +105,33 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        body: BlocBuilder<ProductsCubit, ProductsState>(
+        // BlocConsumer = a BlocBuilder (what to show) plus a BlocListener
+        // (what to do once, like showing a snackbar) in one widget.
+        body: BlocConsumer<ProductsCubit, ProductsState>(
+          listener: (context, state) {
+            // The products stay on screen; just say the refresh didn't work.
+            if (state case ProductsLoaded(:final refreshError?)) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "Couldn't refresh the catalog. ${refreshError.message}",
+                    ),
+                  ),
+                );
+            }
+          },
           builder: (context, state) {
             return switch (state) {
               ProductsLoading() => const LoadingView(),
-              ProductsLoaded(:final products) => _buildCatalog(products),
+              ProductsLoaded(:final products) => _buildCatalog(
+                products,
+                // This builder's `context` is below the BlocProvider. The
+                // State's own `context` is above it, so it couldn't find
+                // the cubit.
+                onRefresh: () => context.read<ProductsCubit>().refresh(),
+              ),
               ProductsEmpty() => const EmptyView(
                 icon: Icons.storefront_outlined,
                 title: 'No products yet',
@@ -127,8 +149,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// The chips and the grid for the [loaded] products, filtered by the
-  /// selected category and ordered by the selected sort.
-  Widget _buildCatalog(List<Product> loaded) {
+  /// selected category and ordered by the selected sort. Pulling the grid
+  /// down calls [onRefresh].
+  Widget _buildCatalog(
+    List<Product> loaded, {
+    required Future<void> Function() onRefresh,
+  }) {
     // A local copy, so Dart can tell it is non-null after the check below.
     final selectedCategory = _selectedCategory;
     final filtered = selectedCategory == null
@@ -151,9 +177,13 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
         Expanded(
-          child: ProductGrid(
-            products: products,
-            onProductTap: (product) => context.push('/product/${product.id}'),
+          // Shows its own spinner until the Future from onRefresh completes.
+          child: RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ProductGrid(
+              products: products,
+              onProductTap: (product) => context.push('/product/${product.id}'),
+            ),
           ),
         ),
       ],

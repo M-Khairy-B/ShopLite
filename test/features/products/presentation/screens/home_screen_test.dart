@@ -100,6 +100,35 @@ void main() {
     });
   });
 
+  group('pull to refresh', () {
+    testWidgets('pulling the grid down loads the catalog again', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository();
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.products = mockProducts.take(2).toList();
+      await _pullToRefresh(tester);
+
+      expect(repository.getProductsCalls, 2);
+      expect(find.byType(ProductCard), findsNWidgets(2));
+    });
+
+    testWidgets('a failed refresh keeps the products and says so', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository();
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.error = const NetworkException();
+      await _pullToRefresh(tester);
+
+      expect(find.text('Essence Mascara Lash Princess'), findsOneWidget);
+      expect(find.byType(ErrorView), findsNothing);
+      expect(find.textContaining("Couldn't refresh"), findsOneWidget);
+    });
+  });
+
   testWidgets('shows an All chip and one chip per category', (tester) async {
     await pumpHomeScreen(tester);
 
@@ -148,6 +177,13 @@ void main() {
 
     expect(find.text('Essence Mascara Lash Princess'), findsOneWidget);
   });
+}
+
+/// Drags the product grid down and lets go, like a user pulling to refresh,
+/// then waits until the refresh has finished.
+Future<void> _pullToRefresh(WidgetTester tester) async {
+  await tester.fling(find.byType(GridView), const Offset(0, 300), 1000);
+  await tester.pumpAndSettle();
 }
 
 /// A copy of [product] in a different [category].
