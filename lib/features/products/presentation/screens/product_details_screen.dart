@@ -23,18 +23,13 @@ const double _wideLayoutBreakpoint = 600;
 /// Shows everything we know about one product.
 ///
 /// Opened at `/product/:id`. It receives only the product's id, and a
-/// [ProductDetailsCubit] loads the product from [repository]: a loading view
-/// first, then the product, a "not found" view, or an error view with
-/// "Try again".
+/// [ProductDetailsCubit] loads the product from the [ProductsRepository]
+/// above it: a loading view first, then the product, a "not found" view, or
+/// an error view with "Try again".
 class ProductDetailsScreen extends StatelessWidget {
-  const ProductDetailsScreen({
-    super.key,
-    required this.productId,
-    required this.repository,
-  });
+  const ProductDetailsScreen({super.key, required this.productId});
 
   final int productId;
-  final ProductsRepository repository;
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +39,10 @@ class ProductDetailsScreen extends StatelessWidget {
       // product. With the same key, `create` runs only once, however often
       // this screen rebuilds.
       key: ValueKey(productId),
-      create: (context) =>
-          ProductDetailsCubit(repository: repository, productId: productId)
-            ..load(),
+      create: (context) => ProductDetailsCubit(
+        repository: context.read<ProductsRepository>(),
+        productId: productId,
+      )..load(),
       child: Scaffold(
         appBar: AppBar(),
         body: BlocBuilder<ProductDetailsCubit, ProductDetailsState>(

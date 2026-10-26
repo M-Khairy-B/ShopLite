@@ -17,9 +17,7 @@ import 'package:e_commerce_learn/features/products/presentation/widgets/sort_opt
 
 /// The first screen of the app: category filters above a product grid.
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.repository});
-
-  final ProductsRepository repository;
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -83,7 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return BlocProvider(
       // `create` runs once, not on every setState() of this screen.
-      create: (context) => ProductsCubit(repository: widget.repository)..load(),
+      create: (context) =>
+          ProductsCubit(repository: context.read<ProductsRepository>())..load(),
       child: Scaffold(
         appBar: AppBar(
           title: Row(

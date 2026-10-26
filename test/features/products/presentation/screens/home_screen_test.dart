@@ -21,7 +21,10 @@ void main() {
       final repository = FakeProductsRepository(gate: gate);
 
       await tester.pumpWidget(
-        MaterialApp(home: HomeScreen(repository: repository)),
+        withProductsRepository(
+          const MaterialApp(home: HomeScreen()),
+          repository: repository,
+        ),
       );
       expect(find.byType(LoadingView), findsOneWidget);
 

@@ -4,7 +4,6 @@ import 'package:e_commerce_learn/features/products/presentation/screens/product_
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/quantity_selector.dart';
 
-import '../helpers/fake_products_repository.dart';
 import '../helpers/pump_app.dart';
 
 /// What a screen reader (TalkBack, VoiceOver) announces for these widgets.
@@ -27,11 +26,8 @@ void main() {
   ) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
-      MaterialApp(
-        home: ProductDetailsScreen(
-          productId: 1,
-          repository: FakeProductsRepository(),
-        ),
+      withProductsRepository(
+        const MaterialApp(home: ProductDetailsScreen(productId: 1)),
       ),
     );
     await tester.pumpAndSettle(); // wait for the product to load
