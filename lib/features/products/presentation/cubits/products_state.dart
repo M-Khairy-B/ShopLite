@@ -19,13 +19,18 @@ final class ProductsLoading extends ProductsState {
 final class ProductsLoaded extends ProductsState {
   /// Keeps a copy of [products] that can't be changed, so nobody can add to
   /// the list of a state that was already emitted.
-  ProductsLoaded(List<Product> products)
+  ProductsLoaded(List<Product> products, {this.refreshError})
     : products = List.unmodifiable(products);
 
   final List<Product> products;
 
+  /// Why the last pull-to-refresh failed, or `null`. When set, [products]
+  /// are still the ones loaded before: the screen keeps showing them and
+  /// tells the user the refresh didn't work.
+  final AppException? refreshError;
+
   @override
-  List<Object?> get props => [products];
+  List<Object?> get props => [products, refreshError];
 }
 
 /// The catalog was loaded, but it has no products.

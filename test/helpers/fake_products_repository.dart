@@ -17,7 +17,9 @@ import 'package:e_commerce_learn/features/products/data/products_repository.dart
 class FakeProductsRepository implements ProductsRepository {
   FakeProductsRepository({this.products = mockProducts, this.error, this.gate});
 
-  final List<Product> products;
+  /// The catalog. Tests can replace it, e.g. to see a refresh pick up
+  /// changes.
+  List<Product> products;
   Object? error;
   Completer<void>? gate;
 

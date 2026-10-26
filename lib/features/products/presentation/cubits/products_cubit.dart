@@ -29,6 +29,36 @@ class ProductsCubit extends Cubit<ProductsState> {
     emit(result);
   }
 
+  /// Reloads the catalog while the current products stay on screen
+  /// (pull-to-refresh). Does nothing unless the catalog is loaded.
+  ///
+  /// There's no loading state: the refresh indicator shows its own spinner
+  /// until this Future completes. If the refresh fails, the products stay
+  /// and [ProductsLoaded.refreshError] says why.
+  Future<void> refresh() async {
+    final current = state;
+    if (current is! ProductsLoaded) {
+      return;
+    }
+
+    // Forget the previous refresh error first. Otherwise failing again
+    // would emit a state equal to the current one, which is skipped, and the
+    // screen would never hear about the second failure.
+    emit(ProductsLoaded(current.products));
+
+    final result = await _fetchFirstPage();
+    if (isClosed) {
+      return;
+    }
+    emit(switch (result) {
+      ProductsError(:final error) => ProductsLoaded(
+        current.products,
+        refreshError: error,
+      ),
+      _ => result,
+    });
+  }
+
   /// The state to show after asking the repository for the first page.
   Future<ProductsState> _fetchFirstPage() async {
     try {
