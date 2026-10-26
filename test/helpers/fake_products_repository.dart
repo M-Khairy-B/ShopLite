@@ -10,14 +10,15 @@ import 'package:e_commerce_learn/features/products/data/products_repository.dart
 /// catalog by default) without any network.
 ///
 /// - Set [error] to make every call fail with it (set it back to `null` to
-///   let a retry succeed).
+///   let a retry succeed). Usually an [AppException]; anything else plays a
+///   repository with a bug, since real repositories throw AppExceptions only.
 /// - Set [gate] to hold every answer until the test completes it, so the
 ///   test can look at the loading state.
 class FakeProductsRepository implements ProductsRepository {
   FakeProductsRepository({this.products = mockProducts, this.error, this.gate});
 
   final List<Product> products;
-  AppException? error;
+  Object? error;
   Completer<void>? gate;
 
   /// How often each method was called, so tests can check (re)loading.

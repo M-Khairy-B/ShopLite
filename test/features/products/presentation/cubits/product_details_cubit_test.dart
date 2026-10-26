@@ -4,9 +4,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
-import 'package:e_commerce_learn/features/products/data/models/product.dart';
-import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
-import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/product_details_cubit.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/product_details_state.dart';
 
@@ -87,8 +84,10 @@ void main() {
 
   blocTest<ProductDetailsCubit, ProductDetailsState>(
     'an error that is not an AppException is reported, and shown as unknown',
-    build: () =>
-        ProductDetailsCubit(repository: _BrokenRepository(), productId: 1),
+    build: () => ProductDetailsCubit(
+      repository: FakeProductsRepository(error: StateError('a bug')),
+      productId: 1,
+    ),
     act: (cubit) => cubit.load(),
     expect: () => [
       const ProductDetailsLoading(),
@@ -110,16 +109,4 @@ void main() {
 
     await expectLater(loading, completes);
   });
-}
-
-/// A repository with a bug: it throws something that is not an
-/// [AppException], which a repository should never do.
-class _BrokenRepository implements ProductsRepository {
-  @override
-  Future<Product> getProduct(int id) async => throw StateError('a bug');
-
-  @override
-  Future<ProductsPage> getProducts({required int skip, required int limit}) {
-    throw UnimplementedError();
-  }
 }
