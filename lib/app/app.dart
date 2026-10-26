@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/router.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
@@ -24,7 +25,7 @@ class _ShopLiteAppState extends State<ShopLiteApp> {
   @override
   void initState() {
     super.initState();
-    _router = createAppRouter(productsRepository: widget.productsRepository);
+    _router = createAppRouter();
   }
 
   @override
@@ -35,14 +36,21 @@ class _ShopLiteAppState extends State<ShopLiteApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'ShopLite',
-      theme: buildAppTheme(),
-      darkTheme: buildAppTheme(brightness: Brightness.dark),
-      // Follow the phone's light/dark setting.
-      themeMode: ThemeMode.system,
-      routerConfig: _router,
-      debugShowCheckedModeBanner: false,
+    // Above MaterialApp, so every screen (and every dialog or sheet) can find
+    // the repository with `context.read<ProductsRepository>()`. `.value`
+    // because main.dart created it: this provider shares it, but doesn't own
+    // it.
+    return RepositoryProvider<ProductsRepository>.value(
+      value: widget.productsRepository,
+      child: MaterialApp.router(
+        title: 'ShopLite',
+        theme: buildAppTheme(),
+        darkTheme: buildAppTheme(brightness: Brightness.dark),
+        // Follow the phone's light/dark setting.
+        themeMode: ThemeMode.system,
+        routerConfig: _router,
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }

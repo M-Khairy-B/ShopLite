@@ -21,7 +21,10 @@ void main() {
       final repository = FakeProductsRepository(gate: gate);
 
       await tester.pumpWidget(
-        MaterialApp(home: HomeScreen(repository: repository)),
+        withProductsRepository(
+          const MaterialApp(home: HomeScreen()),
+          repository: repository,
+        ),
       );
       expect(find.byType(LoadingView), findsOneWidget);
 
@@ -69,6 +72,16 @@ void main() {
       expect(repository.getProductsCalls, 1);
     });
 
+    testWidgets('an empty catalog says so, without chips', (tester) async {
+      await pumpHomeScreen(
+        tester,
+        repository: FakeProductsRepository(products: const []),
+      );
+
+      expect(find.text('No products yet'), findsOneWidget);
+      expect(find.text('All'), findsNothing);
+    });
+
     testWidgets('the chips come from the loaded products', (tester) async {
       // A catalog with only furniture and groceries in it.
       final repository = FakeProductsRepository(
@@ -84,6 +97,35 @@ void main() {
       expect(find.text('Furniture'), findsOneWidget);
       expect(find.text('Groceries'), findsOneWidget);
       expect(find.text('Beauty'), findsNothing);
+    });
+  });
+
+  group('pull to refresh', () {
+    testWidgets('pulling the grid down loads the catalog again', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository();
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.products = mockProducts.take(2).toList();
+      await _pullToRefresh(tester);
+
+      expect(repository.getProductsCalls, 2);
+      expect(find.byType(ProductCard), findsNWidgets(2));
+    });
+
+    testWidgets('a failed refresh keeps the products and says so', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository();
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.error = const NetworkException();
+      await _pullToRefresh(tester);
+
+      expect(find.text('Essence Mascara Lash Princess'), findsOneWidget);
+      expect(find.byType(ErrorView), findsNothing);
+      expect(find.textContaining("Couldn't refresh"), findsOneWidget);
     });
   });
 
@@ -135,6 +177,13 @@ void main() {
 
     expect(find.text('Essence Mascara Lash Princess'), findsOneWidget);
   });
+}
+
+/// Drags the product grid down and lets go, like a user pulling to refresh,
+/// then waits until the refresh has finished.
+Future<void> _pullToRefresh(WidgetTester tester) async {
+  await tester.fling(find.byType(GridView), const Offset(0, 300), 1000);
+  await tester.pumpAndSettle();
 }
 
 /// A copy of [product] in a different [category].

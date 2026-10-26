@@ -6,7 +6,6 @@ import 'package:e_commerce_learn/features/products/presentation/screens/product_
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
 
-import '../../../helpers/fake_products_repository.dart';
 import '../../../helpers/pump_app.dart';
 
 // Screen sizes in physical pixels, with the pixel ratio of each device.
@@ -44,11 +43,10 @@ int _cardsInFirstRow(WidgetTester tester) {
 }
 
 Widget _detailsApp() {
-  return MaterialApp(
-    theme: buildAppTheme(),
-    home: ProductDetailsScreen(
-      productId: mockProducts.first.id,
-      repository: FakeProductsRepository(),
+  return withProductsRepository(
+    MaterialApp(
+      theme: buildAppTheme(),
+      home: ProductDetailsScreen(productId: mockProducts.first.id),
     ),
   );
 }

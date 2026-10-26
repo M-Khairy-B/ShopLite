@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/app/app.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 
 import 'fake_products_repository.dart';
+
+/// Puts [repository] (a fake catalog by default) above [child], the way
+/// `ShopLiteApp` does for the real app, so screens below can read it.
+Widget withProductsRepository(Widget child, {ProductsRepository? repository}) {
+  return RepositoryProvider<ProductsRepository>.value(
+    value: repository ?? FakeProductsRepository(),
+    child: child,
+  );
+}
 
 /// Starts the whole app with [repository] (a fake catalog by default), and
 /// waits until the first screen has finished loading.
@@ -28,8 +38,9 @@ Future<void> pumpHomeScreen(
   ProductsRepository? repository,
 }) async {
   await tester.pumpWidget(
-    MaterialApp(
-      home: HomeScreen(repository: repository ?? FakeProductsRepository()),
+    withProductsRepository(
+      const MaterialApp(home: HomeScreen()),
+      repository: repository,
     ),
   );
   await tester.pumpAndSettle();

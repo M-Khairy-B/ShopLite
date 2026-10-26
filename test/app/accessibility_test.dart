@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/app/router.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
 
-import '../helpers/fake_products_repository.dart';
+import '../helpers/pump_app.dart';
 
 /// Every screen of the app, by its location.
 const _screens = {
@@ -22,16 +22,15 @@ Future<void> _pumpAt(
   String location, {
   Brightness brightness = Brightness.light,
 }) async {
-  final router = createAppRouter(
-    productsRepository: FakeProductsRepository(),
-    initialLocation: location,
-  );
+  final router = createAppRouter(initialLocation: location);
   addTearDown(router.dispose);
 
   await tester.pumpWidget(
-    MaterialApp.router(
-      theme: buildAppTheme(brightness: brightness),
-      routerConfig: router,
+    withProductsRepository(
+      MaterialApp.router(
+        theme: buildAppTheme(brightness: brightness),
+        routerConfig: router,
+      ),
     ),
   );
   await tester.pumpAndSettle();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
@@ -10,6 +11,8 @@ import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
+import 'package:e_commerce_learn/features/products/presentation/cubits/product_details_cubit.dart';
+import 'package:e_commerce_learn/features/products/presentation/cubits/product_details_state.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/quantity_selector.dart';
 
@@ -19,65 +22,38 @@ const double _wideLayoutBreakpoint = 600;
 
 /// Shows everything we know about one product.
 ///
-/// Opened at `/product/:id`. It receives only the product's id and loads the
-/// product from [repository]: a loading view first, then the product, a
-/// "not found" view, or an error view with "Try again".
-class ProductDetailsScreen extends StatefulWidget {
-  const ProductDetailsScreen({
-    super.key,
-    required this.productId,
-    required this.repository,
-  });
+/// Opened at `/product/:id`. It receives only the product's id, and a
+/// [ProductDetailsCubit] loads the product from the [ProductsRepository]
+/// above it: a loading view first, then the product, a "not found" view, or
+/// an error view with "Try again".
+class ProductDetailsScreen extends StatelessWidget {
+  const ProductDetailsScreen({super.key, required this.productId});
 
   final int productId;
-  final ProductsRepository repository;
-
-  @override
-  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
-}
-
-class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
-  /// The request for the product. Started once in [initState], not in
-  /// build(): build() can run many times, and each run would send the
-  /// request again.
-  late Future<Product> _product;
-
-  @override
-  void initState() {
-    super.initState();
-    _product = widget.repository.getProduct(widget.productId);
-  }
-
-  @override
-  void didUpdateWidget(covariant ProductDetailsScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Same screen, different product (e.g. a new id in the route): load it.
-    if (oldWidget.productId != widget.productId) {
-      _product = widget.repository.getProduct(widget.productId);
-    }
-  }
-
-  void _retry() {
-    setState(() {
-      _product = widget.repository.getProduct(widget.productId);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: FutureBuilder<Product>(
-        future: _product,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const LoadingView();
-          }
-
-          final error = snapshot.error;
-          if (error != null) {
-            return switch (error) {
-              NotFoundException() => EmptyView(
+    return BlocProvider(
+      // A different product id means a different key, so Flutter replaces
+      // this provider: the old cubit is closed and a new one loads the new
+      // product. With the same key, `create` runs only once, however often
+      // this screen rebuilds.
+      key: ValueKey(productId),
+      create: (context) => ProductDetailsCubit(
+        repository: context.read<ProductsRepository>(),
+        productId: productId,
+      )..load(),
+      child: Scaffold(
+        appBar: AppBar(),
+        body: BlocBuilder<ProductDetailsCubit, ProductDetailsState>(
+          builder: (context, state) {
+            return switch (state) {
+              ProductDetailsLoading() => const LoadingView(),
+              ProductDetailsLoaded(:final product) => _ProductDetailsBody(
+                product: product,
+              ),
+              // Retrying won't make a missing product appear.
+              ProductDetailsError(error: NotFoundException()) => EmptyView(
                 icon: Icons.inventory_2_outlined,
                 title: 'Product not found',
                 message: 'It may have been removed, or the link is wrong.',
@@ -86,18 +62,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   child: const Text('Back to home'),
                 ),
               ),
-              final AppException error => ErrorView(
+              ProductDetailsError(:final error) => ErrorView(
                 error: error,
-                onRetry: _retry,
+                onRetry: () => context.read<ProductDetailsCubit>().load(),
               ),
-              // The repository promises AppExceptions only; anything else
-              // is a bug, but the user still gets a way to retry.
-              _ => ErrorView(error: const UnknownException(), onRetry: _retry),
             };
-          }
-
-          return _ProductDetailsBody(product: snapshot.requireData);
-        },
+          },
+        ),
       ),
     );
   }
