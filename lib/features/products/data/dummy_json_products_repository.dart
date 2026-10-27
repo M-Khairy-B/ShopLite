@@ -19,9 +19,16 @@ class DummyJsonProductsRepository implements ProductsRepository {
   Future<ProductsPage> getProducts({
     required int skip,
     required int limit,
+    String? category,
   }) async {
+    // DummyJSON has a separate endpoint per category. The slug comes from a
+    // URL the user could type, so it is encoded: a slug like "../carts"
+    // must not reach another endpoint.
+    final path = category == null
+        ? '/products'
+        : '/products/category/${Uri.encodeComponent(category)}';
     final json = await _apiClient.getJson(
-      '/products',
+      path,
       queryParameters: {'skip': skip, 'limit': limit, 'select': _fields},
     );
     return _parse(() => ProductsPage.fromJson(json));

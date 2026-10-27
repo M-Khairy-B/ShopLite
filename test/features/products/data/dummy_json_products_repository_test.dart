@@ -35,6 +35,32 @@ void main() {
       });
     });
 
+    test('with a category, asks for that category\'s products', () async {
+      final (:repository, :network) = _repositoryThat(
+        (_) => jsonResponse(readFixture('products_page.json')),
+      );
+
+      await repository.getProducts(skip: 0, limit: 30, category: 'laptops');
+
+      final request = network.lastRequest!;
+      expect(request.path, '/products/category/laptops');
+      expect(request.queryParameters, {
+        'skip': 0,
+        'limit': 30,
+        'select': 'title,description,price,rating,category,thumbnail',
+      });
+    });
+
+    test('a category slug cannot reach another endpoint', () async {
+      final (:repository, :network) = _repositoryThat(
+        (_) => jsonResponse(readFixture('products_page.json')),
+      );
+
+      await repository.getProducts(skip: 0, limit: 30, category: '../carts');
+
+      expect(network.lastRequest!.uri.path, '/products/category/..%2Fcarts');
+    });
+
     test('returns the page as models', () async {
       final (:repository, network: _) = _repositoryThat(
         (_) => jsonResponse(readFixture('products_page.json')),

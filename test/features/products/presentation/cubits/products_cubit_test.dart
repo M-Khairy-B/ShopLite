@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
+import 'package:e_commerce_learn/features/products/data/product_catalog.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_cubit.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_state.dart';
 
@@ -27,7 +28,23 @@ void main() {
     act: (cubit) => cubit.load(),
     expect: () => [const ProductsLoading(), ProductsLoaded(mockProducts)],
     verify: (_) {
-      expect(repository.requestedPages, [(skip: 0, limit: 30)]);
+      expect(repository.requestedPages, [(skip: 0, limit: 30, category: null)]);
+    },
+  );
+
+  blocTest<ProductsCubit, ProductsState>(
+    'with a category, loads only that category',
+    setUp: () => repository = FakeProductsRepository(),
+    build: () => ProductsCubit(repository: repository, category: 'laptops'),
+    act: (cubit) => cubit.load(),
+    expect: () => [
+      const ProductsLoading(),
+      ProductsLoaded(productsInCategory(mockProducts, 'laptops')),
+    ],
+    verify: (_) {
+      expect(repository.requestedPages, [
+        (skip: 0, limit: 30, category: 'laptops'),
+      ]);
     },
   );
 

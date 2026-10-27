@@ -40,7 +40,7 @@ void main() {
 
       await pumpHomeScreen(tester, repository: repository);
 
-      expect(repository.requestedPages, [(skip: 0, limit: 30)]);
+      expect(repository.requestedPages, [(skip: 0, limit: 30, category: null)]);
     });
 
     testWidgets('a failed load shows the error, and "Try again" reloads', (

@@ -11,7 +11,12 @@ import 'package:e_commerce_learn/features/products/data/models/products_page.dar
 /// Both methods throw an `AppException` when something goes wrong.
 abstract interface class ProductsRepository {
   /// One page of the catalog: [limit] products, after skipping [skip].
-  Future<ProductsPage> getProducts({required int skip, required int limit});
+  /// With a [category] (its slug), only that category's products.
+  Future<ProductsPage> getProducts({
+    required int skip,
+    required int limit,
+    String? category,
+  });
 
   /// The product with this [id]. Throws a `NotFoundException` if it doesn't
   /// exist.

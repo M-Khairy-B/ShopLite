@@ -3,12 +3,17 @@ import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_state.dart';
 
-/// Loads the home catalog.
+/// Loads the catalog: all products (Home), or one category's products.
 ///
 /// Starts in [ProductsLoading]; call [load] to fetch the catalog, and call it
 /// again to retry after an error.
 class ProductsCubit extends Cubit<ProductsState> {
-  ProductsCubit({required this._repository}) : super(const ProductsLoading());
+  ProductsCubit({required this._repository, this._category})
+    : super(const ProductsLoading());
+
+  /// Only this category's products (its slug), or `null` for the whole
+  /// catalog.
+  final String? _category;
 
   /// How many products to load. Only the first page for now: Phase 5 loads
   /// more while the user scrolls.
@@ -62,7 +67,11 @@ class ProductsCubit extends Cubit<ProductsState> {
   /// The state to show after asking the repository for the first page.
   Future<ProductsState> _fetchFirstPage() async {
     try {
-      final page = await _repository.getProducts(skip: 0, limit: pageSize);
+      final page = await _repository.getProducts(
+        skip: 0,
+        limit: pageSize,
+        category: _category,
+      );
       return page.products.isEmpty
           ? const ProductsEmpty()
           : ProductsLoaded(page.products);
