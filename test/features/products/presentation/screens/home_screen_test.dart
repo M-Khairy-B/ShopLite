@@ -6,6 +6,7 @@ import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
@@ -40,7 +41,9 @@ void main() {
 
       await pumpHomeScreen(tester, repository: repository);
 
-      expect(repository.requestedPages, [(skip: 0, limit: 30, category: null)]);
+      expect(repository.requestedPages, [
+        (skip: 0, limit: 30, category: null, sort: ProductSort.featured),
+      ]);
     });
 
     testWidgets('a failed load shows the error, and "Try again" reloads', (

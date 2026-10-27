@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/features/products/data/product_catalog.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_cubit.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_state.dart';
 
@@ -11,6 +12,9 @@ import '../../../../helpers/fake_products_repository.dart';
 import '../../../../helpers/mock_products.dart';
 
 void main() {
+  const laptops = ProductsQuery(category: 'laptops');
+  final laptopProducts = productsInCategory(mockProducts, 'laptops');
+
   test('starts in the loading state', () {
     final cubit = ProductsCubit(repository: FakeProductsRepository());
 
@@ -28,7 +32,9 @@ void main() {
     act: (cubit) => cubit.load(),
     expect: () => [const ProductsLoading(), ProductsLoaded(mockProducts)],
     verify: (_) {
-      expect(repository.requestedPages, [(skip: 0, limit: 30, category: null)]);
+      expect(repository.requestedPages, [
+        (skip: 0, limit: 30, category: null, sort: ProductSort.featured),
+      ]);
     },
   );
 
@@ -38,15 +44,101 @@ void main() {
     build: () => ProductsCubit(repository: repository, category: 'laptops'),
     act: (cubit) => cubit.load(),
     expect: () => [
-      const ProductsLoading(),
-      ProductsLoaded(productsInCategory(mockProducts, 'laptops')),
+      const ProductsLoading(query: laptops),
+      ProductsLoaded(laptopProducts, query: laptops),
     ],
     verify: (_) {
       expect(repository.requestedPages, [
-        (skip: 0, limit: 30, category: 'laptops'),
+        (skip: 0, limit: 30, category: 'laptops', sort: ProductSort.featured),
       ]);
     },
   );
+
+  group('choosing what to show', () {
+    blocTest<ProductsCubit, ProductsState>(
+      'selecting a category loads that category',
+      build: () => ProductsCubit(repository: FakeProductsRepository()),
+      seed: () => ProductsLoaded(mockProducts),
+      act: (cubit) => cubit.selectCategory('laptops'),
+      expect: () => [
+        const ProductsLoading(query: laptops),
+        ProductsLoaded(laptopProducts, query: laptops),
+      ],
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'selecting All (null) loads the whole catalog again',
+      build: () => ProductsCubit(repository: FakeProductsRepository()),
+      seed: () => ProductsLoaded(laptopProducts, query: laptops),
+      act: (cubit) => cubit.selectCategory(null),
+      expect: () => [const ProductsLoading(), ProductsLoaded(mockProducts)],
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'selecting the category that is already selected does nothing',
+      setUp: () => repository = FakeProductsRepository(),
+      build: () => ProductsCubit(repository: repository),
+      seed: () => ProductsLoaded(laptopProducts, query: laptops),
+      act: (cubit) => cubit.selectCategory('laptops'),
+      expect: () => <ProductsState>[],
+      verify: (_) => expect(repository.getProductsCalls, 0),
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'changing the sort reloads in that order, keeping the category',
+      build: () => ProductsCubit(repository: FakeProductsRepository()),
+      seed: () => ProductsLoaded(laptopProducts, query: laptops),
+      act: (cubit) => cubit.changeSort(ProductSort.priceLowToHigh),
+      expect: () {
+        const cheapLaptopsFirst = ProductsQuery(
+          category: 'laptops',
+          sort: ProductSort.priceLowToHigh,
+        );
+        return [
+          const ProductsLoading(query: cheapLaptopsFirst),
+          ProductsLoaded(
+            sortProducts(laptopProducts, ProductSort.priceLowToHigh),
+            query: cheapLaptopsFirst,
+          ),
+        ];
+      },
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'choosing the sort that is already chosen does nothing',
+      setUp: () => repository = FakeProductsRepository(),
+      build: () => ProductsCubit(repository: repository),
+      seed: () => ProductsLoaded(mockProducts),
+      act: (cubit) => cubit.changeSort(ProductSort.featured),
+      expect: () => <ProductsState>[],
+      verify: (_) => expect(repository.getProductsCalls, 0),
+    );
+
+    test('an answer for an earlier choice is ignored', () async {
+      final firstAnswer = Completer<void>();
+      final repository = FakeProductsRepository(gate: firstAnswer);
+      final cubit = ProductsCubit(repository: repository)
+        ..emit(ProductsLoaded(mockProducts));
+
+      // The user taps "Laptops"; that answer is slow...
+      final laptopsLoading = cubit.selectCategory('laptops');
+      // ...so they tap "Beauty", which is answered at once.
+      repository.gate = null;
+      await cubit.selectCategory('beauty');
+      // Now the old "Laptops" answer arrives, last.
+      firstAnswer.complete();
+      await laptopsLoading;
+
+      expect(
+        cubit.state,
+        ProductsLoaded(
+          productsInCategory(mockProducts, 'beauty'),
+          query: const ProductsQuery(category: 'beauty'),
+        ),
+      );
+      await cubit.close();
+    });
+  });
 
   blocTest<ProductsCubit, ProductsState>(
     'an empty catalog emits the empty state',
@@ -176,6 +268,42 @@ void main() {
       expect: () => <ProductsState>[],
       verify: (_) => expect(repository.getProductsCalls, 0),
     );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'keeps the selected category and sort',
+      setUp: () => repository = FakeProductsRepository(),
+      build: () => ProductsCubit(repository: repository),
+      seed: () => ProductsLoaded(
+        laptopProducts,
+        query: const ProductsQuery(
+          category: 'laptops',
+          sort: ProductSort.topRated,
+        ),
+      ),
+      act: (cubit) => cubit.refresh(),
+      verify: (_) {
+        expect(repository.requestedPages, [
+          (skip: 0, limit: 30, category: 'laptops', sort: ProductSort.topRated),
+        ]);
+      },
+    );
+
+    test('a refresh answer for an earlier choice is ignored', () async {
+      final slowRefresh = Completer<void>();
+      final repository = FakeProductsRepository(gate: slowRefresh);
+      final cubit = ProductsCubit(repository: repository)
+        ..emit(ProductsLoaded(mockProducts));
+
+      final refreshing = cubit.refresh();
+      // While it refreshes, the user picks "Laptops", answered at once.
+      repository.gate = null;
+      await cubit.selectCategory('laptops');
+      slowRefresh.complete();
+      await refreshing;
+
+      expect(cubit.state, ProductsLoaded(laptopProducts, query: laptops));
+      await cubit.close();
+    });
 
     test('closing the cubit while it refreshes does not fail', () async {
       final gate = Completer<void>();

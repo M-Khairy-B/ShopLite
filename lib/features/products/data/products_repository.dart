@@ -1,6 +1,7 @@
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 
 /// Where products come from, as far as the rest of the app is concerned.
 ///
@@ -11,11 +12,13 @@ import 'package:e_commerce_learn/features/products/data/models/products_page.dar
 /// Both methods throw an `AppException` when something goes wrong.
 abstract interface class ProductsRepository {
   /// One page of the catalog: [limit] products, after skipping [skip].
-  /// With a [category] (its slug), only that category's products.
+  /// With a [category] (its slug), only that category's products. [sort]
+  /// orders the whole catalog (or category) before it is split into pages.
   Future<ProductsPage> getProducts({
     required int skip,
     required int limit,
     String? category,
+    ProductSort sort = ProductSort.featured,
   });
 
   /// The product with this [id]. Throws a `NotFoundException` if it doesn't

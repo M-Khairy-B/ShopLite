@@ -3,6 +3,7 @@ import 'package:e_commerce_learn/core/network/api_client.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 
 /// [ProductsRepository] backed by the DummyJSON API.
@@ -20,6 +21,7 @@ class DummyJsonProductsRepository implements ProductsRepository {
     required int skip,
     required int limit,
     String? category,
+    ProductSort sort = ProductSort.featured,
   }) async {
     // DummyJSON has a separate endpoint per category. The slug comes from a
     // URL the user could type, so it is encoded: a slug like "../carts"
@@ -29,9 +31,25 @@ class DummyJsonProductsRepository implements ProductsRepository {
         : '/products/category/${Uri.encodeComponent(category)}';
     final json = await _apiClient.getJson(
       path,
-      queryParameters: {'skip': skip, 'limit': limit, 'select': _fields},
+      queryParameters: {
+        'skip': skip,
+        'limit': limit,
+        'select': _fields,
+        ..._sortParameters(sort),
+      },
     );
     return _parse(() => ProductsPage.fromJson(json));
+  }
+
+  /// How DummyJSON is asked for each order. The server sorts the whole
+  /// catalog, so page 2 continues where page 1 stopped.
+  static Map<String, Object?> _sortParameters(ProductSort sort) {
+    return switch (sort) {
+      ProductSort.featured => const {}, // the API's own order
+      ProductSort.priceLowToHigh => const {'sortBy': 'price', 'order': 'asc'},
+      ProductSort.priceHighToLow => const {'sortBy': 'price', 'order': 'desc'},
+      ProductSort.topRated => const {'sortBy': 'rating', 'order': 'desc'},
+    };
   }
 
   @override

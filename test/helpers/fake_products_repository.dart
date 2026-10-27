@@ -6,6 +6,7 @@ import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
 import 'package:e_commerce_learn/features/products/data/product_catalog.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 
 import 'mock_products.dart';
@@ -42,20 +43,30 @@ class FakeProductsRepository implements ProductsRepository {
   int getCategoriesCalls = 0;
 
   /// Every page that was asked for, in order.
-  final requestedPages = <({int skip, int limit, String? category})>[];
+  final requestedPages =
+      <({int skip, int limit, String? category, ProductSort sort})>[];
 
+  /// Like the real API: filters by [category], sorts the whole result by
+  /// [sort], then cuts out the requested page.
   @override
   Future<ProductsPage> getProducts({
     required int skip,
     required int limit,
     String? category,
+    ProductSort sort = ProductSort.featured,
   }) async {
     getProductsCalls++;
-    requestedPages.add((skip: skip, limit: limit, category: category));
+    requestedPages.add((
+      skip: skip,
+      limit: limit,
+      category: category,
+      sort: sort,
+    ));
     await _waitThenMaybeFail();
-    final matching = category == null
-        ? products
-        : productsInCategory(products, category);
+    final matching = sortProducts(
+      category == null ? products : productsInCategory(products, category),
+      sort,
+    );
     return ProductsPage(
       products: matching.skip(skip).take(limit).toList(),
       total: matching.length,

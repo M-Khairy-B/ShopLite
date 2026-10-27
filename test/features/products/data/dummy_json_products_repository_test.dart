@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/network/api_client.dart';
 import 'package:e_commerce_learn/features/products/data/dummy_json_products_repository.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 
 import '../../../helpers/fake_http.dart';
 
@@ -50,6 +51,36 @@ void main() {
         'select': 'title,description,price,rating,category,thumbnail',
       });
     });
+
+    // What DummyJSON needs for each sort; "featured" is its own order.
+    const sortParameters = {
+      ProductSort.featured: <String, Object?>{},
+      ProductSort.priceLowToHigh: {'sortBy': 'price', 'order': 'asc'},
+      ProductSort.priceHighToLow: {'sortBy': 'price', 'order': 'desc'},
+      ProductSort.topRated: {'sortBy': 'rating', 'order': 'desc'},
+    };
+    for (final MapEntry(key: sort, value: parameters)
+        in sortParameters.entries) {
+      test('${sort.name} asks the server for that order', () async {
+        final (:repository, :network) = _repositoryThat(
+          (_) => jsonResponse(readFixture('products_page.json')),
+        );
+
+        await repository.getProducts(
+          skip: 0,
+          limit: 30,
+          category: 'laptops',
+          sort: sort,
+        );
+
+        expect(network.lastRequest!.queryParameters, {
+          'skip': 0,
+          'limit': 30,
+          'select': 'title,description,price,rating,category,thumbnail',
+          ...parameters,
+        });
+      });
+    }
 
     test('a category slug cannot reach another endpoint', () async {
       final (:repository, :network) = _repositoryThat(

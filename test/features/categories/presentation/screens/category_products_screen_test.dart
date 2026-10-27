@@ -6,6 +6,7 @@ import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
 import 'package:e_commerce_learn/features/categories/presentation/screens/category_products_screen.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 
 import '../../../../helpers/fake_products_repository.dart';
 import '../../../../helpers/pump_app.dart';
@@ -37,7 +38,7 @@ void main() {
     expect(find.text('Apple MacBook Pro 14 Inch Space Grey'), findsOneWidget);
     expect(find.text('Essence Mascara Lash Princess'), findsNothing);
     expect(repository.requestedPages, [
-      (skip: 0, limit: 30, category: 'laptops'),
+      (skip: 0, limit: 30, category: 'laptops', sort: ProductSort.featured),
     ]);
   });
 
