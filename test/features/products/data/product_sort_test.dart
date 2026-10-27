@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/data/product_sort.dart';
+
+import '../../../helpers/mock_products.dart';
 
 /// The ids of [sort] applied to the whole mock catalog, in order.
 List<int> _sortedIds(ProductSort sort) {

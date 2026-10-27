@@ -5,13 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
-import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 
 import '../../../../helpers/fake_products_repository.dart';
+import '../../../../helpers/mock_products.dart';
 import '../../../../helpers/pump_app.dart';
 
 void main() {

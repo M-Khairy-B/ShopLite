@@ -5,8 +5,8 @@ enum ProductSort { featured, priceLowToHigh, priceHighToLow, topRated }
 
 /// Returns a new list with [products] ordered by [sort].
 ///
-/// The original list is never changed. That matters: `mockProducts` is a
-/// `const` list, and sorting it in place would throw.
+/// The original list is never changed. That matters: loaded products live
+/// in a state whose list can't be changed, so sorting in place would throw.
 List<Product> sortProducts(List<Product> products, ProductSort sort) {
   final sorted = [...products];
 

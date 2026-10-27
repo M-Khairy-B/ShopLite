@@ -16,6 +16,17 @@ void main() {
     });
   });
 
+  group('titleFromSlug', () {
+    test('turns dashes into spaces and capitalizes every word', () {
+      expect(titleFromSlug('home-decoration'), 'Home Decoration');
+      expect(titleFromSlug('womens-jewellery'), 'Womens Jewellery');
+    });
+
+    test('capitalizes a one-word slug', () {
+      expect(titleFromSlug('laptops'), 'Laptops');
+    });
+  });
+
   group('ratingSemanticsLabel', () {
     test('says the rating with one decimal, out of 5', () {
       expect(ratingSemanticsLabel(2.56), 'Rated 2.6 out of 5');

@@ -1,18 +1,11 @@
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
-import 'package:e_commerce_learn/features/products/data/product_catalog.dart';
 
-/// Every category in the mock catalog, in the order it first appears.
-final List<String> mockCategories = categoriesOf(mockProducts);
-
-/// Returns the mock products in [category] (empty if there are none).
-List<Product> findMockProductsByCategory(String category) {
-  return productsInCategory(mockProducts, category);
-}
-
-/// Temporary hard-coded catalog used while we build the UI in Phase 1.
+/// A small, fixed catalog for tests: 8 products in 4 categories, with
+/// values copied from the DummyJSON API (https://dummyjson.com).
 ///
-/// The values are copied from the DummyJSON API (https://dummyjson.com),
-/// which replaces this list in Phase 3.
+/// It was the app's own data in Phases 1–2. Since the app loads products
+/// from the API, it is only test data, so it lives here, outside `lib/`
+/// and out of the app.
 const List<Product> mockProducts = [
   Product(
     id: 1,

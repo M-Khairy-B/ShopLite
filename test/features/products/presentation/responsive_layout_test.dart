@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
-import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
 
+import '../../../helpers/mock_products.dart';
 import '../../../helpers/pump_app.dart';
 
 // Screen sizes in physical pixels, with the pixel ratio of each device.

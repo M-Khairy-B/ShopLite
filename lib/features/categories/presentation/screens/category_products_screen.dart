@@ -29,7 +29,7 @@ class CategoryProductsScreen extends StatelessWidget {
         category: category,
       )..load(),
       child: Scaffold(
-        appBar: AppBar(title: Text(capitalize(category))),
+        appBar: AppBar(title: Text(titleFromSlug(category))),
         body: BlocBuilder<ProductsCubit, ProductsState>(
           builder: (context, state) {
             return switch (state) {

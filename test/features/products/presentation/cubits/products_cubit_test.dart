@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
-import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/data/product_catalog.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_cubit.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_state.dart';
 
 import '../../../../helpers/fake_products_repository.dart';
+import '../../../../helpers/mock_products.dart';
 
 void main() {
   test('starts in the loading state', () {
