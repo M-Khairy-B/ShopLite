@@ -47,20 +47,39 @@ class ApiClient {
     String path, {
     Map<String, Object?>? queryParameters,
   }) async {
-    final Response<Object?> response;
-    try {
-      response = await _dio.get<Object?>(
-        path,
-        queryParameters: queryParameters,
-      );
-    } on DioException catch (error) {
-      throw _toAppException(error);
-    }
-
-    return switch (response.data) {
+    return switch (await _get(path, queryParameters)) {
       final Map<String, dynamic> json => json,
       _ => throw const UnexpectedResponseException(),
     };
+  }
+
+  /// Like [getJson], for endpoints that answer with a JSON array instead of
+  /// an object, such as `/products/categories`.
+  Future<List<dynamic>> getJsonList(
+    String path, {
+    Map<String, Object?>? queryParameters,
+  }) async {
+    return switch (await _get(path, queryParameters)) {
+      final List<dynamic> json => json,
+      _ => throw const UnexpectedResponseException(),
+    };
+  }
+
+  /// Sends the GET request and returns the decoded body, whatever its shape.
+  /// The public methods check the shape they expect.
+  Future<Object?> _get(
+    String path,
+    Map<String, Object?>? queryParameters,
+  ) async {
+    try {
+      final response = await _dio.get<Object?>(
+        path,
+        queryParameters: queryParameters,
+      );
+      return response.data;
+    } on DioException catch (error) {
+      throw _toAppException(error);
+    }
   }
 }
 

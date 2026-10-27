@@ -1,4 +1,5 @@
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
+import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
 
 /// Where products come from, as far as the rest of the app is concerned.
@@ -15,4 +16,8 @@ abstract interface class ProductsRepository {
   /// The product with this [id]. Throws a `NotFoundException` if it doesn't
   /// exist.
   Future<Product> getProduct(int id);
+
+  /// Every product category. Categories rarely change, so implementations
+  /// may remember them after the first successful call.
+  Future<List<ProductCategory>> getCategories();
 }

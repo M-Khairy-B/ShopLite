@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
+import 'package:e_commerce_learn/core/utils/text_format.dart';
 import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
+import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
+import 'package:e_commerce_learn/features/products/data/product_catalog.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 
 /// A [ProductsRepository] for tests: answers from [products] (the mock
@@ -26,6 +29,7 @@ class FakeProductsRepository implements ProductsRepository {
   /// How often each method was called, so tests can check (re)loading.
   int getProductsCalls = 0;
   int getProductCalls = 0;
+  int getCategoriesCalls = 0;
 
   /// Every page that was asked for, in order.
   final requestedPages = <({int skip, int limit})>[];
@@ -56,6 +60,18 @@ class FakeProductsRepository implements ProductsRepository {
       }
     }
     throw const NotFoundException();
+  }
+
+  /// The categories of [products], named like the real API names them
+  /// (`beauty` → `Beauty`).
+  @override
+  Future<List<ProductCategory>> getCategories() async {
+    getCategoriesCalls++;
+    await _waitThenMaybeFail();
+    return [
+      for (final slug in categoriesOf(products))
+        ProductCategory(slug: slug, name: capitalize(slug)),
+    ];
   }
 
   Future<void> _waitThenMaybeFail() async {

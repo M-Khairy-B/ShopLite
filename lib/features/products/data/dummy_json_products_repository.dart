@@ -1,6 +1,7 @@
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/network/api_client.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
+import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 
@@ -33,6 +34,24 @@ class DummyJsonProductsRepository implements ProductsRepository {
       queryParameters: {'select': _fields},
     );
     return _parse(() => Product.fromJson(json));
+  }
+
+  /// The categories, once they've been loaded. They rarely change, so they
+  /// are fetched once per app session and then reused.
+  List<ProductCategory>? _categories;
+
+  @override
+  Future<List<ProductCategory>> getCategories() async {
+    final cached = _categories;
+    if (cached != null) {
+      return cached;
+    }
+
+    final json = await _apiClient.getJsonList('/products/categories');
+    final categories = _parse(() => ProductCategory.listFromJson(json));
+    // Every caller gets this same list, so nobody may change it. A failure
+    // above throws before this line: errors are never remembered.
+    return _categories = List.unmodifiable(categories);
   }
 }
 

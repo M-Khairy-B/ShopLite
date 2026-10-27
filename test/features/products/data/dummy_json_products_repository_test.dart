@@ -76,6 +76,70 @@ void main() {
     });
   });
 
+  group('getCategories', () {
+    test('asks for the category list and returns models', () async {
+      final (:repository, :network) = _repositoryThat(
+        (_) => jsonResponse(readFixture('categories.json')),
+      );
+
+      final categories = await repository.getCategories();
+
+      expect(network.lastRequest!.path, '/products/categories');
+      expect(categories.map((category) => category.slug), [
+        'beauty',
+        'home-decoration',
+        'laptops',
+      ]);
+    });
+
+    test('asks the server only once, then remembers the answer', () async {
+      var requests = 0;
+      final (:repository, network: _) = _repositoryThat((_) {
+        requests++;
+        return jsonResponse(readFixture('categories.json'));
+      });
+
+      final first = await repository.getCategories();
+      final second = await repository.getCategories();
+
+      expect(requests, 1);
+      expect(second, first);
+    });
+
+    test('a failure is not remembered: the next call asks again', () async {
+      var requests = 0;
+      final (:repository, network: _) = _repositoryThat((_) {
+        requests++;
+        return requests == 1
+            ? jsonResponse('{"message": "oops"}', statusCode: 500)
+            : jsonResponse(readFixture('categories.json'));
+      });
+
+      await expectLater(
+        repository.getCategories(),
+        throwsA(isA<ServerException>()),
+      );
+      final categories = await repository.getCategories();
+
+      expect(requests, 2);
+      expect(categories, hasLength(3));
+    });
+
+    test(
+      'categories in the wrong shape → UnexpectedResponseException',
+      () async {
+        final (:repository, network: _) = _repositoryThat(
+          (_) => jsonResponse('[{"slug": "beauty"}]'),
+        );
+
+        await expectLater(
+          repository.getCategories(),
+          throwsA(isA<UnexpectedResponseException>()),
+        );
+      },
+    );
+  });
+
   group('failures are always AppExceptions', () {
     test(
       'product data in the wrong shape → UnexpectedResponseException',
