@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
-import 'package:e_commerce_learn/features/products/data/models/product.dart';
+import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
@@ -84,22 +84,69 @@ void main() {
       expect(find.text('No products yet'), findsOneWidget);
       expect(find.text('All'), findsNothing);
     });
+  });
 
-    testWidgets('the chips come from the loaded products', (tester) async {
-      // A catalog with only furniture and groceries in it.
+  group('category chips', () {
+    testWidgets('come from the categories, with their real names', (
+      tester,
+    ) async {
       final repository = FakeProductsRepository(
-        products: [
-          for (final product in mockProducts.take(2))
-            _withCategory(product, 'furniture'),
-          _withCategory(mockProducts[2], 'groceries'),
+        categories: const [
+          ProductCategory(slug: 'beauty', name: 'Beauty'),
+          ProductCategory(slug: 'home-decoration', name: 'Home Decoration'),
         ],
       );
 
       await pumpHomeScreen(tester, repository: repository);
 
-      expect(find.text('Furniture'), findsOneWidget);
-      expect(find.text('Groceries'), findsOneWidget);
-      expect(find.text('Beauty'), findsNothing);
+      expect(find.text('Home Decoration'), findsOneWidget);
+      expect(find.text('Laptops'), findsNothing); // not in the category list
+    });
+
+    testWidgets('selecting one asks the API for that category', (tester) async {
+      final repository = FakeProductsRepository();
+      await pumpHomeScreen(tester, repository: repository);
+
+      await tester.tap(find.text('Laptops'));
+      await tester.pumpAndSettle();
+
+      expect(repository.requestedPages.last.category, 'laptops');
+      expect(find.text('Apple MacBook Pro 14 Inch Space Grey'), findsOneWidget);
+    });
+
+    testWidgets('stay visible, with the new choice selected, while loading', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository();
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.gate = Completer<void>(); // hold the next answer
+      await tester.tap(find.text('Laptops'));
+      await tester.pump();
+
+      expect(find.byType(LoadingView), findsOneWidget);
+      final laptopsChip = tester.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, 'Laptops'),
+      );
+      expect(laptopsChip.selected, isTrue);
+
+      repository.gate!.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('if categories fail to load, the catalog still shows', (
+      tester,
+    ) async {
+      await pumpHomeScreen(
+        tester,
+        repository: FakeProductsRepository(
+          categoriesError: const NetworkException(),
+        ),
+      );
+
+      expect(find.text('Essence Mascara Lash Princess'), findsOneWidget);
+      expect(find.byType(ErrorView), findsNothing);
+      expect(find.text('All'), findsNothing); // no chips
     });
   });
 
@@ -187,17 +234,4 @@ void main() {
 Future<void> _pullToRefresh(WidgetTester tester) async {
   await tester.fling(find.byType(GridView), const Offset(0, 300), 1000);
   await tester.pumpAndSettle();
-}
-
-/// A copy of [product] in a different [category].
-Product _withCategory(Product product, String category) {
-  return Product(
-    id: product.id,
-    title: product.title,
-    description: product.description,
-    priceCents: product.priceCents,
-    rating: product.rating,
-    category: category,
-    thumbnailUrl: product.thumbnailUrl,
-  );
 }

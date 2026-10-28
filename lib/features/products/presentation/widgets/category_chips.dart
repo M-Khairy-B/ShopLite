@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:e_commerce_learn/app/theme/app_spacing.dart';
-import 'package:e_commerce_learn/core/utils/text_format.dart';
+import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 
 /// A horizontally scrolling row of category filters, with "All" first.
 ///
@@ -14,12 +14,12 @@ class CategoryChips extends StatelessWidget {
     required this.onSelected,
   });
 
-  final List<String> categories;
+  final List<ProductCategory> categories;
 
-  /// The selected category, or `null` when "All" is selected.
+  /// The selected category's slug, or `null` when "All" is selected.
   final String? selectedCategory;
 
-  /// Called with the tapped category, or `null` when "All" is tapped.
+  /// Called with the tapped category's slug, or `null` when "All" is tapped.
   final void Function(String? category) onSelected;
 
   @override
@@ -36,19 +36,20 @@ class CategoryChips extends StatelessWidget {
       child: Row(
         spacing: AppSpacing.sm,
         children: [
-          _buildChip(null),
-          for (final category in categories) _buildChip(category),
+          _buildChip(label: 'All', slug: null),
+          for (final category in categories)
+            _buildChip(label: category.name, slug: category.slug),
         ],
       ),
     );
   }
 
-  /// Builds one chip; a `null` category means the "All" chip.
-  Widget _buildChip(String? category) {
+  /// Builds one chip; a `null` slug means the "All" chip.
+  Widget _buildChip({required String label, required String? slug}) {
     return ChoiceChip(
-      label: Text(category == null ? 'All' : capitalize(category)),
-      selected: category == selectedCategory,
-      onSelected: (_) => onSelected(category),
+      label: Text(label),
+      selected: slug == selectedCategory,
+      onSelected: (_) => onSelected(slug),
     );
   }
 }

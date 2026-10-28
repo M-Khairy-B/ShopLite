@@ -5,10 +5,10 @@ import 'package:e_commerce_learn/core/utils/text_format.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
-import 'package:e_commerce_learn/features/products/data/product_catalog.dart';
 import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 
+import 'fake_catalog.dart';
 import 'mock_products.dart';
 
 /// A [ProductsRepository] for tests: answers from [products] (the mock
@@ -23,6 +23,7 @@ class FakeProductsRepository implements ProductsRepository {
   FakeProductsRepository({
     this.products = mockProducts,
     this.categories,
+    this.categoriesError,
     this.error,
     this.gate,
   });
@@ -34,6 +35,9 @@ class FakeProductsRepository implements ProductsRepository {
   /// The categories to answer with, or `null` to use the categories of
   /// [products].
   final List<ProductCategory>? categories;
+
+  /// Like [error], but for [getCategories] only.
+  final AppException? categoriesError;
   Object? error;
   Completer<void>? gate;
 
@@ -93,6 +97,10 @@ class FakeProductsRepository implements ProductsRepository {
   Future<List<ProductCategory>> getCategories() async {
     getCategoriesCalls++;
     await _waitThenMaybeFail();
+    final categoriesError = this.categoriesError;
+    if (categoriesError != null) {
+      throw categoriesError;
+    }
     return categories ??
         [
           for (final slug in categoriesOf(products))

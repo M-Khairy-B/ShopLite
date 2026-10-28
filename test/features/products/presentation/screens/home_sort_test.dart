@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 
+import '../../../../helpers/fake_products_repository.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// The id of the product shown in the first grid cell.
@@ -30,6 +32,15 @@ void main() {
     await _chooseSort(tester, 'Price: high to low');
 
     expect(_firstProductId(tester), 78); // the MacBook, $1999.99
+  });
+
+  testWidgets('choosing a sort asks the API for that order', (tester) async {
+    final repository = FakeProductsRepository();
+    await pumpHomeScreen(tester, repository: repository);
+
+    await _chooseSort(tester, 'Top rated');
+
+    expect(repository.requestedPages.last.sort, ProductSort.topRated);
   });
 
   testWidgets('a snackbar confirms the sort, and Undo restores the order', (
