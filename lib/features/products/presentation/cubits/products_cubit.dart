@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
+import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
 import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_state.dart';
@@ -14,8 +15,7 @@ class ProductsCubit extends Cubit<ProductsState> {
   ProductsCubit({required this._repository, String? category})
     : super(ProductsLoading(query: ProductsQuery(category: category)));
 
-  /// How many products to load. Only the first page for now: Phase 5 loads
-  /// more while the user scrolls.
+  /// How many products each page has: the first one, and each [loadMore].
   static const pageSize = 30;
 
   final ProductsRepository _repository;
@@ -56,6 +56,68 @@ class ProductsCubit extends Cubit<ProductsState> {
     emit(result);
   }
 
+  /// Loads the next page and adds it after the products already shown
+  /// (infinite scroll). Does nothing unless the catalog is loaded, has more,
+  /// and isn't already loading more, so it is safe to call often.
+  ///
+  /// If it fails, the products stay and [ProductsLoaded.loadMoreError] says
+  /// why; calling it again tries again.
+  Future<void> loadMore() async {
+    final current = state;
+    if (current is! ProductsLoaded ||
+        !current.hasMore ||
+        current.isLoadingMore) {
+      return;
+    }
+
+    // Also forgets an earlier load-more error: this is a new attempt.
+    emit(
+      ProductsLoaded(
+        current.products,
+        hasMore: true,
+        isLoadingMore: true,
+        query: current.query,
+      ),
+    );
+
+    final result = await _withNextPage(current);
+
+    // As in _show: closed, or the user chose something else meanwhile.
+    if (isClosed || state.query != current.query) {
+      return;
+    }
+    emit(result);
+  }
+
+  /// [current] with the next page added, or with the reason it failed.
+  Future<ProductsLoaded> _withNextPage(ProductsLoaded current) async {
+    try {
+      final page = await _fetchPage(
+        current.query,
+        skip: current.products.length,
+      );
+      // If the catalog changed between two pages, the next page can start
+      // with a product that is already shown. Showing it twice would look
+      // broken (and give two grid items the same key).
+      final shownIds = {for (final product in current.products) product.id};
+      return ProductsLoaded(
+        [
+          ...current.products,
+          ...page.products.where((product) => !shownIds.contains(product.id)),
+        ],
+        hasMore: page.hasMore,
+        query: current.query,
+      );
+    } on AppException catch (error) {
+      return ProductsLoaded(
+        current.products,
+        hasMore: true,
+        loadMoreError: error,
+        query: current.query,
+      );
+    }
+  }
+
   /// Reloads the catalog while the current products stay on screen
   /// (pull-to-refresh). Does nothing unless the catalog is loaded.
   ///
@@ -71,8 +133,15 @@ class ProductsCubit extends Cubit<ProductsState> {
     // Forget the previous refresh error first. Otherwise failing again
     // would emit a state equal to the current one, which is skipped, and the
     // screen would never hear about the second failure.
-    emit(ProductsLoaded(current.products, query: current.query));
+    emit(
+      ProductsLoaded(
+        current.products,
+        hasMore: current.hasMore,
+        query: current.query,
+      ),
+    );
 
+    // A successful refresh starts again from the first page.
     final result = await _fetchFirstPage(current.query);
     // As in _show: closed, or the user chose something else meanwhile.
     if (isClosed || state.query != current.query) {
@@ -81,6 +150,7 @@ class ProductsCubit extends Cubit<ProductsState> {
     emit(switch (result) {
       ProductsError(:final error) => ProductsLoaded(
         current.products,
+        hasMore: current.hasMore,
         refreshError: error,
         query: current.query,
       ),
@@ -92,25 +162,40 @@ class ProductsCubit extends Cubit<ProductsState> {
   /// [query].
   Future<ProductsState> _fetchFirstPage(ProductsQuery query) async {
     try {
-      final page = await _repository.getProducts(
-        skip: 0,
+      final page = await _fetchPage(query, skip: 0);
+      return page.products.isEmpty
+          ? ProductsEmpty(query: query)
+          : ProductsLoaded(page.products, hasMore: page.hasMore, query: query);
+    } on AppException catch (error) {
+      return ProductsError(error, query: query);
+    }
+  }
+
+  /// One page of [query], after the first [skip] products.
+  ///
+  /// Throws AppExceptions only. The repository promises that, so anything
+  /// else is a bug: it is reported (to BlocObserver.onError) and turned into
+  /// an UnknownException, which still gives the user a way to retry.
+  Future<ProductsPage> _fetchPage(
+    ProductsQuery query, {
+    required int skip,
+  }) async {
+    try {
+      // `return await`, not just `return`: without the await, an error from
+      // the Future would arrive after this try had already finished.
+      return await _repository.getProducts(
+        skip: skip,
         limit: pageSize,
         category: query.category,
         sort: query.sort,
       );
-      return page.products.isEmpty
-          ? ProductsEmpty(query: query)
-          : ProductsLoaded(page.products, query: query);
-    } on AppException catch (error) {
-      return ProductsError(error, query: query);
+    } on AppException {
+      rethrow;
     } catch (error, stackTrace) {
-      // The repository promises AppExceptions only, so this is a bug.
-      // Report it (to BlocObserver.onError), but still give the user a way
-      // to retry.
       if (!isClosed) {
         addError(error, stackTrace);
       }
-      return ProductsError(const UnknownException(), query: query);
+      throw const UnknownException();
     }
   }
 }

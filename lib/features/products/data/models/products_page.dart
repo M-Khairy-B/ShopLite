@@ -36,6 +36,14 @@ class ProductsPage {
   final int total;
   final int skip;
   final int limit;
+
+  /// Whether the server has products after this page.
+  ///
+  /// Counted from the server's own numbers ([skip], [total]), so it stays
+  /// right even if the app leaves out a duplicate. An empty page means
+  /// "nothing more", whatever [total] says: otherwise a server that miscounts
+  /// would make the app ask for more forever.
+  bool get hasMore => products.isNotEmpty && skip + products.length < total;
 }
 
 /// Reads one item of the `products` list, which must be a JSON object.

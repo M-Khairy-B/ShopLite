@@ -104,3 +104,21 @@ const List<Product> mockProducts = [
     thumbnailUrl: 'https://cdn.dummyjson.com/product-images/smartphones/iphone-6/thumbnail.webp',
   ),
 ];
+
+/// [count] made-up products with ids 1 to [count], all in `beauty`, for
+/// tests that need more than one page. Product N is called "Product N" and
+/// costs N dollars.
+List<Product> generatedProducts(int count) {
+  return [
+    for (var id = 1; id <= count; id++)
+      Product(
+        id: id,
+        title: 'Product $id',
+        description: 'Made up for tests.',
+        priceCents: id * 100,
+        rating: 4,
+        category: 'beauty',
+        thumbnailUrl: mockProducts.first.thumbnailUrl,
+      ),
+  ];
+}

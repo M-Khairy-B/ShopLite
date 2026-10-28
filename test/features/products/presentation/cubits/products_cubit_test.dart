@@ -319,6 +319,198 @@ void main() {
     });
   });
 
+  group('load more', () {
+    // 45 products: page 1 is products 1–30, page 2 is products 31–45.
+    final catalog = generatedProducts(45);
+    final firstPage = catalog.take(30).toList();
+
+    blocTest<ProductsCubit, ProductsState>(
+      'the first page says whether more products exist',
+      build: () =>
+          ProductsCubit(repository: FakeProductsRepository(products: catalog)),
+      act: (cubit) => cubit.load(),
+      expect: () => [
+        const ProductsLoading(),
+        ProductsLoaded(firstPage, hasMore: true),
+      ],
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'asks for the next page and adds it after the loaded products',
+      setUp: () => repository = FakeProductsRepository(products: catalog),
+      build: () => ProductsCubit(repository: repository),
+      seed: () => ProductsLoaded(firstPage, hasMore: true),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => [
+        ProductsLoaded(firstPage, hasMore: true, isLoadingMore: true),
+        ProductsLoaded(catalog), // all 45, and nothing more after them
+      ],
+      verify: (_) {
+        expect(repository.requestedPages, [
+          (skip: 30, limit: 30, category: null, sort: ProductSort.featured),
+        ]);
+      },
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'asks for the next page of the same category and sort',
+      setUp: () => repository = FakeProductsRepository(products: catalog),
+      build: () => ProductsCubit(repository: repository),
+      seed: () => ProductsLoaded(
+        firstPage,
+        hasMore: true,
+        query: const ProductsQuery(
+          category: 'beauty',
+          sort: ProductSort.priceLowToHigh,
+        ),
+      ),
+      act: (cubit) => cubit.loadMore(),
+      verify: (_) {
+        expect(repository.requestedPages, [
+          (
+            skip: 30,
+            limit: 30,
+            category: 'beauty',
+            sort: ProductSort.priceLowToHigh,
+          ),
+        ]);
+      },
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'does nothing when there is nothing more',
+      setUp: () => repository = FakeProductsRepository(products: catalog),
+      build: () => ProductsCubit(repository: repository),
+      seed: () => ProductsLoaded(catalog),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => <ProductsState>[],
+      verify: (_) => expect(repository.getProductsCalls, 0),
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'does nothing while the next page is already loading',
+      setUp: () => repository = FakeProductsRepository(products: catalog),
+      build: () => ProductsCubit(repository: repository),
+      seed: () => ProductsLoaded(firstPage, hasMore: true, isLoadingMore: true),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => <ProductsState>[],
+      verify: (_) => expect(repository.getProductsCalls, 0),
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'a failed load more keeps the products and says why',
+      build: () => ProductsCubit(
+        repository: FakeProductsRepository(
+          products: catalog,
+          error: const NetworkException(),
+        ),
+      ),
+      seed: () => ProductsLoaded(firstPage, hasMore: true),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => [
+        ProductsLoaded(firstPage, hasMore: true, isLoadingMore: true),
+        ProductsLoaded(
+          firstPage,
+          hasMore: true,
+          loadMoreError: const NetworkException(),
+        ),
+      ],
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'trying again after a failure forgets the error and adds the page',
+      build: () =>
+          ProductsCubit(repository: FakeProductsRepository(products: catalog)),
+      seed: () => ProductsLoaded(
+        firstPage,
+        hasMore: true,
+        loadMoreError: const NetworkException(),
+      ),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => [
+        ProductsLoaded(firstPage, hasMore: true, isLoadingMore: true),
+        ProductsLoaded(catalog),
+      ],
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'a product that is already shown is not added twice',
+      // A new product was added at the start of the catalog after page 1
+      // was loaded, so everything moved one place: page 2 now starts with
+      // product 30, which is already on screen.
+      build: () => ProductsCubit(
+        repository: FakeProductsRepository(
+          products: [mockProducts.first, ...catalog],
+        ),
+      ),
+      seed: () => ProductsLoaded(firstPage, hasMore: true),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => [
+        ProductsLoaded(firstPage, hasMore: true, isLoadingMore: true),
+        ProductsLoaded(catalog),
+      ],
+    );
+
+    test('an answer for an earlier choice is ignored', () async {
+      final slowPage = Completer<void>();
+      final repository = FakeProductsRepository(
+        products: catalog,
+        gate: slowPage,
+      );
+      final cubit = ProductsCubit(repository: repository)
+        ..emit(ProductsLoaded(firstPage, hasMore: true));
+
+      final loadingMore = cubit.loadMore();
+      // While page 2 loads, the user picks "Beauty", answered at once.
+      repository.gate = null;
+      await cubit.selectCategory('beauty');
+      slowPage.complete();
+      await loadingMore;
+
+      expect(
+        cubit.state,
+        ProductsLoaded(
+          firstPage,
+          hasMore: true,
+          query: const ProductsQuery(category: 'beauty'),
+        ),
+      );
+      await cubit.close();
+    });
+
+    test('closing the cubit while it loads more does not fail', () async {
+      final gate = Completer<void>();
+      final cubit = ProductsCubit(
+        repository: FakeProductsRepository(products: catalog, gate: gate),
+      )..emit(ProductsLoaded(firstPage, hasMore: true));
+
+      final loadingMore = cubit.loadMore();
+      await cubit.close();
+      gate.complete();
+
+      await expectLater(loadingMore, completes);
+    });
+
+    blocTest<ProductsCubit, ProductsState>(
+      'a failed refresh keeps every loaded page and whether there is more',
+      build: () => ProductsCubit(
+        repository: FakeProductsRepository(
+          products: catalog,
+          error: const NetworkException(),
+        ),
+      ),
+      seed: () => ProductsLoaded(firstPage, hasMore: true),
+      act: (cubit) => cubit.refresh(),
+      expect: () => [
+        ProductsLoaded(
+          firstPage,
+          hasMore: true,
+          refreshError: const NetworkException(),
+        ),
+      ],
+    );
+  });
+
   test('the products of a loaded state cannot be changed', () {
     final state = ProductsLoaded(mockProducts.take(2).toList());
 
