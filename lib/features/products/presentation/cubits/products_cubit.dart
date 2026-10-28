@@ -61,16 +61,37 @@ class ProductsCubit extends Cubit<ProductsState> {
   /// and isn't already loading more, so it is safe to call often.
   ///
   /// If it fails, the products stay and [ProductsLoaded.loadMoreError] says
-  /// why; calling it again tries again.
+  /// why. Then it does nothing until [retryLoadMore] is called: the screen
+  /// calls this while the user scrolls, and scrolling shouldn't send request
+  /// after request while offline. (The screen can't stop that itself: it
+  /// may still be showing the state from before the failure.)
   Future<void> loadMore() async {
     final current = state;
     if (current is! ProductsLoaded ||
         !current.hasMore ||
-        current.isLoadingMore) {
+        current.isLoadingMore ||
+        current.loadMoreError != null) {
       return;
     }
+    await _loadNextPage(current);
+  }
 
-    // Also forgets an earlier load-more error: this is a new attempt.
+  /// Tries [loadMore] again after it failed (the user tapped "Try again").
+  /// Does nothing if it hasn't failed.
+  Future<void> retryLoadMore() async {
+    final current = state;
+    if (current is! ProductsLoaded || current.loadMoreError == null) {
+      return;
+    }
+    await _loadNextPage(current);
+  }
+
+  /// Marks [current] as loading more, then shows it with the next page added
+  /// (or with the reason that failed).
+  Future<void> _loadNextPage(ProductsLoaded current) async {
+    // Emitted before the first await, so a call that comes while this one
+    // waits already sees "loading more". Also forgets an earlier load-more
+    // error: this is a new attempt.
     emit(
       ProductsLoaded(
         current.products,

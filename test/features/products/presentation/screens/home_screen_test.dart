@@ -10,6 +10,7 @@ import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
 
 import '../../../../helpers/fake_products_repository.dart';
 import '../../../../helpers/mock_products.dart';
@@ -179,6 +180,90 @@ void main() {
     });
   });
 
+  group('loading more', () {
+    testWidgets('scrolling to the end loads and shows the next page', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository(
+        products: generatedProducts(45),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+
+      await scrollProductGridToEnd(tester); // loads page 2
+      await scrollProductGridToEnd(tester); // shows its end
+
+      expect(repository.requestedPages.map((page) => page.skip), [0, 30]);
+      expect(find.text('Product 45'), findsOneWidget);
+    });
+
+    testWidgets('fast scrolling asks for each page only once', (tester) async {
+      final repository = FakeProductsRepository(
+        products: generatedProducts(45),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.gate = Completer<void>(); // hold page 2
+      for (var i = 0; i < 5; i++) {
+        await tester.fling(
+          find.byType(ProductGrid),
+          const Offset(0, -3000),
+          5000,
+        );
+        // Not pumpAndSettle: the spinner never stops while page 2 waits.
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(repository.requestedPages.map((page) => page.skip), [0, 30]);
+
+      repository.gate!.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a failed load keeps the products, and "Try again" works', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository(
+        products: generatedProducts(45),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.error = const NetworkException();
+      await scrollProductGridToEnd(tester);
+
+      expect(find.text('Product 30'), findsOneWidget);
+      expect(find.byType(ErrorView), findsNothing);
+      expect(find.textContaining("Couldn't load more"), findsOneWidget);
+
+      repository.error = null; // the connection is back
+      await tester.ensureVisible(find.text('Try again'));
+      await tester.pumpAndSettle(); // lay out the scrolled position
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+      await scrollProductGridToEnd(tester);
+
+      expect(find.text('Product 45'), findsOneWidget);
+      expect(find.textContaining("Couldn't load more"), findsNothing);
+    });
+
+    testWidgets('after a failure, scrolling alone does not try again', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository(
+        products: generatedProducts(45),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+      repository.error = const NetworkException();
+      await scrollProductGridToEnd(tester);
+
+      await tester.drag(find.byType(ProductGrid), const Offset(0, 500));
+      await tester.pumpAndSettle();
+      await scrollProductGridToEnd(tester);
+
+      expect(repository.getProductsCalls, 2); // page 1, and page 2 once
+    });
+  });
+
   testWidgets('shows an All chip and one chip per category', (tester) async {
     await pumpHomeScreen(tester);
 
@@ -232,6 +317,6 @@ void main() {
 /// Drags the product grid down and lets go, like a user pulling to refresh,
 /// then waits until the refresh has finished.
 Future<void> _pullToRefresh(WidgetTester tester) async {
-  await tester.fling(find.byType(GridView), const Offset(0, 300), 1000);
+  await tester.fling(find.byType(ProductGrid), const Offset(0, 300), 1000);
   await tester.pumpAndSettle();
 }

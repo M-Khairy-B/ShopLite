@@ -9,6 +9,7 @@ import 'package:e_commerce_learn/features/categories/presentation/screens/catego
 import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 
 import '../../../../helpers/fake_products_repository.dart';
+import '../../../../helpers/mock_products.dart';
 import '../../../../helpers/pump_app.dart';
 
 /// The products screen of [category], getting products from [repository].
@@ -56,6 +57,24 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Apple MacBook Pro 14 Inch Space Grey'), findsOneWidget);
+  });
+
+  testWidgets('scrolling to the end loads the next page of the category', (
+    tester,
+  ) async {
+    // The generated products are all in "beauty".
+    final repository = FakeProductsRepository(products: generatedProducts(45));
+    await tester.pumpWidget(_categoryScreen(repository, category: 'beauty'));
+    await tester.pumpAndSettle();
+
+    await scrollProductGridToEnd(tester);
+
+    expect(repository.requestedPages.last, (
+      skip: 30,
+      limit: 30,
+      category: 'beauty',
+      sort: ProductSort.featured,
+    ));
   });
 
   testWidgets('a category without products says so', (tester) async {

@@ -14,7 +14,7 @@ import 'package:e_commerce_learn/features/products/data/products_repository.dart
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_cubit.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_state.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/category_chips.dart';
-import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/paged_product_grid.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/sort_options_sheet.dart';
 
 /// The first screen of the app: category filters above a product grid.
@@ -188,10 +188,10 @@ class _Catalog extends StatelessWidget {
         return switch (state) {
           ProductsLoading() => const LoadingView(),
           // Shows its own spinner until the Future from onRefresh completes.
-          ProductsLoaded(:final products) => RefreshIndicator(
+          ProductsLoaded() => RefreshIndicator(
             onRefresh: () => context.read<ProductsCubit>().refresh(),
-            child: ProductGrid(
-              products: products,
+            child: PagedProductGrid(
+              state: state,
               onProductTap: (product) => context.push('/product/${product.id}'),
             ),
           ),

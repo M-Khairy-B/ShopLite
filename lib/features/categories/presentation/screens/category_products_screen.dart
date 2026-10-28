@@ -8,7 +8,7 @@ import 'package:e_commerce_learn/core/widgets/loading_view.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_cubit.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_state.dart';
-import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/paged_product_grid.dart';
 
 /// Shows the products of one category. Opened at `/categories/:category`,
 /// where `category` is the category's slug.
@@ -34,8 +34,8 @@ class CategoryProductsScreen extends StatelessWidget {
           builder: (context, state) {
             return switch (state) {
               ProductsLoading() => const LoadingView(),
-              ProductsLoaded(:final products) => ProductGrid(
-                products: products,
+              ProductsLoaded() => PagedProductGrid(
+                state: state,
                 // Stay inside the Categories tab: this product page is
                 // nested under the category, not under Home.
                 onProductTap: (product) =>

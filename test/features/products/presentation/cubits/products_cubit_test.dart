@@ -418,7 +418,23 @@ void main() {
     );
 
     blocTest<ProductsCubit, ProductsState>(
-      'trying again after a failure forgets the error and adds the page',
+      'after a failure, loading more does nothing until the user retries',
+      // Scrolling keeps calling loadMore. If that retried, a fling while
+      // offline would send request after request.
+      setUp: () => repository = FakeProductsRepository(products: catalog),
+      build: () => ProductsCubit(repository: repository),
+      seed: () => ProductsLoaded(
+        firstPage,
+        hasMore: true,
+        loadMoreError: const NetworkException(),
+      ),
+      act: (cubit) => cubit.loadMore(),
+      expect: () => <ProductsState>[],
+      verify: (_) => expect(repository.getProductsCalls, 0),
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'retrying after a failure forgets the error and adds the page',
       build: () =>
           ProductsCubit(repository: FakeProductsRepository(products: catalog)),
       seed: () => ProductsLoaded(
@@ -426,11 +442,21 @@ void main() {
         hasMore: true,
         loadMoreError: const NetworkException(),
       ),
-      act: (cubit) => cubit.loadMore(),
+      act: (cubit) => cubit.retryLoadMore(),
       expect: () => [
         ProductsLoaded(firstPage, hasMore: true, isLoadingMore: true),
         ProductsLoaded(catalog),
       ],
+    );
+
+    blocTest<ProductsCubit, ProductsState>(
+      'retrying does nothing when loading more has not failed',
+      setUp: () => repository = FakeProductsRepository(products: catalog),
+      build: () => ProductsCubit(repository: repository),
+      seed: () => ProductsLoaded(firstPage, hasMore: true, isLoadingMore: true),
+      act: (cubit) => cubit.retryLoadMore(),
+      expect: () => <ProductsState>[],
+      verify: (_) => expect(repository.getProductsCalls, 0),
     );
 
     blocTest<ProductsCubit, ProductsState>(

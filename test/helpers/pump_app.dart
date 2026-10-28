@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/app/app.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
 
 import 'fake_products_repository.dart';
 
@@ -28,6 +29,13 @@ Future<void> pumpShopLiteApp(
   await tester.pumpWidget(
     ShopLiteApp(productsRepository: repository ?? FakeProductsRepository()),
   );
+  await tester.pumpAndSettle();
+}
+
+/// Drags the product grid as far down as it goes, like a user scrolling to
+/// the end, and waits until everything that started has finished.
+Future<void> scrollProductGridToEnd(WidgetTester tester) async {
+  await tester.drag(find.byType(ProductGrid), const Offset(0, -100000));
   await tester.pumpAndSettle();
 }
 

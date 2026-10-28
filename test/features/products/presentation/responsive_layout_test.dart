@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
 
 import '../../../helpers/mock_products.dart';
@@ -75,7 +76,7 @@ void main() {
       expect(tester.takeException(), isNull);
       // Prove the catalog was really laid out, so "no exception" means
       // something (a loading spinner can never overflow).
-      expect(find.byType(GridView), findsOneWidget);
+      expect(find.byType(ProductGrid), findsOneWidget);
     });
 
     testWidgets('category chips grow to fit the largest text size', (
@@ -111,7 +112,7 @@ void main() {
       expect(tester.takeException(), isNull);
       // Prove the catalog was really laid out, so "no exception" means
       // something (a loading spinner can never overflow).
-      expect(find.byType(GridView), findsOneWidget);
+      expect(find.byType(ProductGrid), findsOneWidget);
     });
 
     testWidgets('has no overflow on a landscape phone', (tester) async {
@@ -121,7 +122,7 @@ void main() {
       expect(tester.takeException(), isNull);
       // Prove the catalog was really laid out, so "no exception" means
       // something (a loading spinner can never overflow).
-      expect(find.byType(GridView), findsOneWidget);
+      expect(find.byType(ProductGrid), findsOneWidget);
     });
   });
 
