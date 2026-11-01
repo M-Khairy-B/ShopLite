@@ -105,6 +105,49 @@ void main() {
     });
   });
 
+  group('searchProducts', () {
+    test(
+      'asks the search endpoint, with only the fields the app uses',
+      () async {
+        final (:repository, :network) = _repositoryThat(
+          (_) => jsonResponse(readFixture('products_page.json')),
+        );
+
+        await repository.searchProducts('phone', limit: 30);
+
+        final request = network.lastRequest!;
+        expect(request.path, '/products/search');
+        expect(request.queryParameters, {
+          'q': 'phone',
+          'limit': 30,
+          'select': 'title,description,price,rating,category,thumbnail',
+        });
+      },
+    );
+
+    test('returns the results as models', () async {
+      final (:repository, network: _) = _repositoryThat(
+        (_) => jsonResponse(readFixture('products_page.json')),
+      );
+
+      final page = await repository.searchProducts('mascara', limit: 30);
+
+      expect(page.products.map((product) => product.id), [1, 2]);
+      expect(page.total, 194);
+    });
+
+    test('results in the wrong shape → UnexpectedResponseException', () async {
+      final (:repository, network: _) = _repositoryThat(
+        (_) => jsonResponse('{"products": "not a list"}'),
+      );
+
+      await expectLater(
+        repository.searchProducts('phone', limit: 30),
+        throwsA(isA<UnexpectedResponseException>()),
+      );
+    });
+  });
+
   group('getProduct', () {
     test('asks for that product, with only the fields the app uses', () async {
       final (:repository, :network) = _repositoryThat(

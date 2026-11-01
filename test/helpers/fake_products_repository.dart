@@ -46,6 +46,9 @@ class FakeProductsRepository implements ProductsRepository {
   int getProductCalls = 0;
   int getCategoriesCalls = 0;
 
+  /// Every search that was sent, in order.
+  final searchQueries = <String>[];
+
   /// Every page that was asked for, in order.
   final requestedPages =
       <({int skip, int limit, String? category, ProductSort sort})>[];
@@ -75,6 +78,29 @@ class FakeProductsRepository implements ProductsRepository {
       products: matching.skip(skip).take(limit).toList(),
       total: matching.length,
       skip: skip,
+      limit: limit,
+    );
+  }
+
+  /// Like the real API: the products whose title or description contains
+  /// [query], ignoring case.
+  @override
+  Future<ProductsPage> searchProducts(
+    String query, {
+    required int limit,
+  }) async {
+    searchQueries.add(query);
+    await _waitThenMaybeFail();
+    final text = query.toLowerCase();
+    final matching = products.where(
+      (product) =>
+          product.title.toLowerCase().contains(text) ||
+          product.description.toLowerCase().contains(text),
+    );
+    return ProductsPage(
+      products: matching.take(limit).toList(),
+      total: matching.length,
+      skip: 0,
       limit: limit,
     );
   }

@@ -9,7 +9,7 @@ import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 /// know whether products come from DummyJSON, from Supabase (Phase 9), or
 /// from a fake in a test.
 ///
-/// Both methods throw an `AppException` when something goes wrong.
+/// Every method throws an `AppException` when something goes wrong.
 abstract interface class ProductsRepository {
   /// One page of the catalog: [limit] products, after skipping [skip].
   /// With a [category] (its slug), only that category's products. [sort]
@@ -20,6 +20,11 @@ abstract interface class ProductsRepository {
     String? category,
     ProductSort sort = ProductSort.featured,
   });
+
+  /// The first [limit] products whose title or description contains [query],
+  /// ignoring upper and lower case. The page's `total` says how many match
+  /// in all.
+  Future<ProductsPage> searchProducts(String query, {required int limit});
 
   /// The product with this [id]. Throws a `NotFoundException` if it doesn't
   /// exist.

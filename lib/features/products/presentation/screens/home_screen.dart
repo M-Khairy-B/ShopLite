@@ -63,6 +63,11 @@ class _HomeView extends StatelessWidget {
         ),
         actions: [
           IconButton(
+            tooltip: 'Search products',
+            icon: const Icon(Icons.search),
+            onPressed: () => context.push('/search'),
+          ),
+          IconButton(
             tooltip: 'Sort products',
             icon: const Icon(Icons.sort),
             onPressed: () => _chooseSort(context),

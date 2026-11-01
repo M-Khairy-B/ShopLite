@@ -53,6 +53,20 @@ class DummyJsonProductsRepository implements ProductsRepository {
   }
 
   @override
+  Future<ProductsPage> searchProducts(
+    String query, {
+    required int limit,
+  }) async {
+    // dio encodes the query parameters, so any text the user types is safe
+    // here (spaces, "&", ...).
+    final json = await _apiClient.getJson(
+      '/products/search',
+      queryParameters: {'q': query, 'limit': limit, 'select': _fields},
+    );
+    return _parse(() => ProductsPage.fromJson(json));
+  }
+
+  @override
   Future<Product> getProduct(int id) async {
     final json = await _apiClient.getJson(
       '/products/$id',
