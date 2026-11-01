@@ -1,0 +1,13 @@
+# Settings for code generators run by `dart run build_runner build`.
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # Wrap every failure (missing field, wrong type) in one
+          # CheckedFromJsonException that names the class and the field.
+          # Without it, bad data throws a bare TypeError that says neither.
+          checked: true
+          # Only reading for now: nothing is sent back to the API. A model
+          # that must be saved (the cart, Phase 6) turns it on for itself.
+          create_to_json: false

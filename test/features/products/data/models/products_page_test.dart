@@ -56,6 +56,34 @@ void main() {
     );
   });
 
+  test('a broken product names both the list and its field', () {
+    // The whole path to the problem: products → price.
+    expect(
+      () => ProductsPage.fromJson({
+        'products': [
+          {
+            'id': 1,
+            'title': 'No price',
+            'description': 'Everything else is fine.',
+            'rating': 4,
+            'category': 'beauty',
+            'thumbnail': 'https://cdn.dummyjson.com/example/thumbnail.webp',
+          },
+        ],
+        'total': 1,
+        'skip': 0,
+        'limit': 1,
+      }),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.message,
+          'message',
+          allOf(contains('"products"'), contains('"price"')),
+        ),
+      ),
+    );
+  });
+
   test('throws a FormatException when a list item is not an object', () {
     expect(
       () => ProductsPage.fromJson({

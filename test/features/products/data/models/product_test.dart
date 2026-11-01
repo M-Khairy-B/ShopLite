@@ -71,4 +71,20 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test('the error names the class and the field that is wrong', () {
+    // So a log says where to look, not only that something was wrong.
+    final json = _productJson()..remove('price');
+
+    expect(
+      () => Product.fromJson(json),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.message,
+          'message',
+          allOf(contains('Product'), contains('"price"')),
+        ),
+      ),
+    );
+  });
 }
