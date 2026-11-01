@@ -37,7 +37,7 @@ class FakeProductsRepository implements ProductsRepository {
   final List<ProductCategory>? categories;
 
   /// Like [error], but for [getCategories] only.
-  final AppException? categoriesError;
+  AppException? categoriesError;
   Object? error;
   Completer<void>? gate;
 

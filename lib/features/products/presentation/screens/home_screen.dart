@@ -189,7 +189,7 @@ class _Catalog extends StatelessWidget {
           ProductsLoading() => const LoadingView(),
           // Shows its own spinner until the Future from onRefresh completes.
           ProductsLoaded() => RefreshIndicator(
-            onRefresh: () => context.read<ProductsCubit>().refresh(),
+            onRefresh: () => _reload(context, refresh: true),
             child: PagedProductGrid(
               state: state,
               onProductTap: (product) => context.push('/product/${product.id}'),
@@ -202,10 +202,26 @@ class _Catalog extends StatelessWidget {
           ),
           ProductsError(:final error) => ErrorView(
             error: error,
-            onRetry: () => context.read<ProductsCubit>().load(),
+            onRetry: () => _reload(context, refresh: false),
           ),
         };
       },
     );
+  }
+
+  /// Loads the catalog again: [refresh] keeps the products on screen
+  /// meanwhile (pull to refresh), otherwise it shows the loading view
+  /// ("Try again").
+  ///
+  /// If the chips failed to load, they are tried again too: they failed for
+  /// the same reason as the catalog (often being offline), and they have no
+  /// "Try again" of their own.
+  Future<void> _reload(BuildContext context, {required bool refresh}) async {
+    final products = context.read<ProductsCubit>();
+    // Both at the same time; done when both are.
+    await Future.wait([
+      refresh ? products.refresh() : products.load(),
+      context.read<CategoriesCubit>().reloadIfFailed(),
+    ]);
   }
 }

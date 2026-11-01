@@ -149,6 +149,49 @@ void main() {
       expect(find.byType(ErrorView), findsNothing);
       expect(find.text('All'), findsNothing); // no chips
     });
+
+    testWidgets('come back with "Try again" after starting offline', (
+      tester,
+    ) async {
+      // Offline: the catalog and the categories both fail.
+      final repository = FakeProductsRepository(
+        error: const NetworkException(),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.error = null; // the connection is back
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+
+      expect(repository.getCategoriesCalls, 2);
+      expect(find.text('All'), findsOneWidget);
+    });
+
+    testWidgets('come back with pull to refresh, if they had failed', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository(
+        categoriesError: const NetworkException(),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.categoriesError = null;
+      await _pullToRefresh(tester);
+
+      expect(find.text('All'), findsOneWidget);
+    });
+
+    testWidgets('are not loaded again by pull to refresh once shown', (
+      tester,
+    ) async {
+      // Reloading would hide the chips for a moment, for nothing.
+      final repository = FakeProductsRepository();
+      await pumpHomeScreen(tester, repository: repository);
+
+      await _pullToRefresh(tester);
+
+      expect(repository.getCategoriesCalls, 1);
+    });
   });
 
   group('pull to refresh', () {

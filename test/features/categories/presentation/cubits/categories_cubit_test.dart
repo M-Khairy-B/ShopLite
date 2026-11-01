@@ -77,6 +77,53 @@ void main() {
     errors: () => [isA<StateError>()],
   );
 
+  group('reloadIfFailed', () {
+    blocTest<CategoriesCubit, CategoriesState>(
+      'after an error, loads the categories again',
+      setUp: () {
+        repository = FakeProductsRepository(
+          categories: categories,
+          error: const NetworkException(),
+        );
+      },
+      build: () => CategoriesCubit(repository: repository),
+      act: (cubit) async {
+        await cubit.load();
+        repository.error = null; // the connection is back
+        await cubit.reloadIfFailed();
+      },
+      skip: 2, // the first load: loading, then the error
+      expect: () => [const CategoriesLoading(), CategoriesLoaded(categories)],
+    );
+
+    blocTest<CategoriesCubit, CategoriesState>(
+      'does nothing once the categories are loaded',
+      setUp: () => repository = FakeProductsRepository(categories: categories),
+      build: () => CategoriesCubit(repository: repository),
+      act: (cubit) async {
+        await cubit.load();
+        await cubit.reloadIfFailed();
+      },
+      skip: 2, // the first load
+      expect: () => <CategoriesState>[],
+      verify: (_) => expect(repository.getCategoriesCalls, 1),
+    );
+
+    test('does nothing while the categories are loading', () async {
+      final gate = Completer<void>();
+      final repository = FakeProductsRepository(gate: gate);
+      final cubit = CategoriesCubit(repository: repository);
+
+      final loading = cubit.load();
+      await cubit.reloadIfFailed();
+      gate.complete();
+      await loading;
+
+      expect(repository.getCategoriesCalls, 1);
+      await cubit.close();
+    });
+  });
+
   test('closing the cubit while it loads does not fail', () async {
     final gate = Completer<void>();
     final cubit = CategoriesCubit(

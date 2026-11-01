@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
+import 'package:e_commerce_learn/core/errors/repository_errors.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/product_details_state.dart';
 
@@ -7,7 +8,8 @@ import 'package:e_commerce_learn/features/products/presentation/cubits/product_d
 ///
 /// Starts in [ProductDetailsLoading]; call [load] to fetch the product, and
 /// call it again to retry after an error.
-class ProductDetailsCubit extends Cubit<ProductDetailsState> {
+class ProductDetailsCubit extends Cubit<ProductDetailsState>
+    with RepositoryErrors<ProductDetailsState> {
   ProductDetailsCubit({required this._repository, required this._productId})
     : super(const ProductDetailsLoading());
 
@@ -30,17 +32,12 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
   /// The state to show after asking the repository for the product.
   Future<ProductDetailsState> _fetchProduct() async {
     try {
-      return ProductDetailsLoaded(await _repository.getProduct(_productId));
+      final product = await callRepository(
+        () => _repository.getProduct(_productId),
+      );
+      return ProductDetailsLoaded(product);
     } on AppException catch (error) {
       return ProductDetailsError(error);
-    } catch (error, stackTrace) {
-      // The repository promises AppExceptions only, so this is a bug.
-      // Report it (to BlocObserver.onError), but still give the user a way
-      // to retry.
-      if (!isClosed) {
-        addError(error, stackTrace);
-      }
-      return const ProductDetailsError(UnknownException());
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
+import 'package:e_commerce_learn/core/errors/repository_errors.dart';
 import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
 import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
@@ -9,7 +10,8 @@ import 'package:e_commerce_learn/features/products/presentation/cubits/products_
 ///
 /// Starts in [ProductsLoading]; call [load] to fetch the catalog, and call it
 /// again to retry after an error.
-class ProductsCubit extends Cubit<ProductsState> {
+class ProductsCubit extends Cubit<ProductsState>
+    with RepositoryErrors<ProductsState> {
   /// With a [category] (its slug), the cubit starts with only that
   /// category's products.
   ProductsCubit({required this._repository, String? category})
@@ -192,31 +194,16 @@ class ProductsCubit extends Cubit<ProductsState> {
     }
   }
 
-  /// One page of [query], after the first [skip] products.
-  ///
-  /// Throws AppExceptions only. The repository promises that, so anything
-  /// else is a bug: it is reported (to BlocObserver.onError) and turned into
-  /// an UnknownException, which still gives the user a way to retry.
-  Future<ProductsPage> _fetchPage(
-    ProductsQuery query, {
-    required int skip,
-  }) async {
-    try {
-      // `return await`, not just `return`: without the await, an error from
-      // the Future would arrive after this try had already finished.
-      return await _repository.getProducts(
+  /// One page of [query], after the first [skip] products. Throws
+  /// AppExceptions only.
+  Future<ProductsPage> _fetchPage(ProductsQuery query, {required int skip}) {
+    return callRepository(
+      () => _repository.getProducts(
         skip: skip,
         limit: pageSize,
         category: query.category,
         sort: query.sort,
-      );
-    } on AppException {
-      rethrow;
-    } catch (error, stackTrace) {
-      if (!isClosed) {
-        addError(error, stackTrace);
-      }
-      throw const UnknownException();
-    }
+      ),
+    );
   }
 }
