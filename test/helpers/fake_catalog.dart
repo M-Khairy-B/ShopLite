@@ -30,6 +30,12 @@ List<Product> sortProducts(List<Product> products, ProductSort sort) {
       sorted.sort((a, b) => b.priceCents.compareTo(a.priceCents));
     case ProductSort.topRated:
       sorted.sort((a, b) => b.rating.compareTo(a.rating));
+    case ProductSort.titleAToZ:
+      // Like DummyJSON, ignore case: 'iPhone' sorts with the I's. A plain
+      // compareTo would put every lowercase title after 'Z'.
+      sorted.sort(
+        (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+      );
   }
 
   return sorted;

@@ -9,6 +9,7 @@ String sortLabel(ProductSort sort) {
     ProductSort.priceLowToHigh => 'Price: low to high',
     ProductSort.priceHighToLow => 'Price: high to low',
     ProductSort.topRated => 'Top rated',
+    ProductSort.titleAToZ => 'Title: A to Z',
   };
 }
 

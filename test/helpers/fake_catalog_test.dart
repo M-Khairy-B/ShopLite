@@ -81,6 +81,39 @@ void main() {
       ]);
     });
 
+    test('title A to Z orders the titles alphabetically', () {
+      expect(_sortedIds(ProductSort.titleAToZ), [
+        78, // Apple MacBook Pro 14 Inch Space Grey
+        79, // Asus Zenbook Pro Dual Screen Laptop
+        6, // Calvin Klein CK One
+        7, // Chanel Coco Noir Eau De
+        1, // Essence Mascara Lash Princess
+        2, // Eyeshadow Palette with Mirror
+        121, // iPhone 5s
+        122, // iPhone 6
+      ]);
+    });
+
+    // The mock titles sort the same way with or without case, so these
+    // titles check the rule: 'iPhone' goes with the I's, not after 'Z'.
+    test('title A to Z ignores upper and lower case', () {
+      final products = [
+        _titled(1, 'Zipper Bag'),
+        _titled(2, 'iPhone 5s'),
+        _titled(3, 'Ice Cream'),
+        _titled(4, 'Juice'),
+      ];
+
+      final sorted = sortProducts(products, ProductSort.titleAToZ);
+
+      expect(sorted.map((product) => product.title), [
+        'Ice Cream',
+        'iPhone 5s',
+        'Juice',
+        'Zipper Bag',
+      ]);
+    });
+
     test('returns a new list and leaves the original untouched', () {
       final sorted = sortProducts(mockProducts, ProductSort.priceHighToLow);
 
@@ -98,6 +131,18 @@ Product _product(int id, String category) {
     priceCents: 100,
     rating: 4,
     category: category,
+    thumbnailUrl: '',
+  );
+}
+
+Product _titled(int id, String title) {
+  return Product(
+    id: id,
+    title: title,
+    description: '',
+    priceCents: 100,
+    rating: 4,
+    category: 'test',
     thumbnailUrl: '',
   );
 }

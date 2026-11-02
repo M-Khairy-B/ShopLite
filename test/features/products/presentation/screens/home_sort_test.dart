@@ -34,6 +34,16 @@ void main() {
     expect(_firstProductId(tester), 78); // the MacBook, $1999.99
   });
 
+  testWidgets('choosing title A to Z puts the first title first', (
+    tester,
+  ) async {
+    await pumpHomeScreen(tester);
+
+    await _chooseSort(tester, 'Title: A to Z');
+
+    expect(_firstProductId(tester), 78); // Apple MacBook Pro 14 Inch...
+  });
+
   testWidgets('choosing a sort asks the API for that order', (tester) async {
     final repository = FakeProductsRepository();
     await pumpHomeScreen(tester, repository: repository);

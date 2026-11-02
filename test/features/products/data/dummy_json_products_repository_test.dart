@@ -58,6 +58,7 @@ void main() {
       ProductSort.priceLowToHigh: {'sortBy': 'price', 'order': 'asc'},
       ProductSort.priceHighToLow: {'sortBy': 'price', 'order': 'desc'},
       ProductSort.topRated: {'sortBy': 'rating', 'order': 'desc'},
+      ProductSort.titleAToZ: {'sortBy': 'title', 'order': 'asc'},
     };
     for (final MapEntry(key: sort, value: parameters)
         in sortParameters.entries) {

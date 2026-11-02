@@ -49,6 +49,7 @@ class DummyJsonProductsRepository implements ProductsRepository {
       ProductSort.priceLowToHigh => const {'sortBy': 'price', 'order': 'asc'},
       ProductSort.priceHighToLow => const {'sortBy': 'price', 'order': 'desc'},
       ProductSort.topRated => const {'sortBy': 'rating', 'order': 'desc'},
+      ProductSort.titleAToZ => const {'sortBy': 'title', 'order': 'asc'},
     };
   }
 
