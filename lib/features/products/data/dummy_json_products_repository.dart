@@ -1,7 +1,9 @@
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/network/api_client.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
+import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 
 /// [ProductsRepository] backed by the DummyJSON API.
@@ -18,10 +20,49 @@ class DummyJsonProductsRepository implements ProductsRepository {
   Future<ProductsPage> getProducts({
     required int skip,
     required int limit,
+    String? category,
+    ProductSort sort = ProductSort.featured,
   }) async {
+    // DummyJSON has a separate endpoint per category. The slug comes from a
+    // URL the user could type, so it is encoded: a slug like "../carts"
+    // must not reach another endpoint.
+    final path = category == null
+        ? '/products'
+        : '/products/category/${Uri.encodeComponent(category)}';
     final json = await _apiClient.getJson(
-      '/products',
-      queryParameters: {'skip': skip, 'limit': limit, 'select': _fields},
+      path,
+      queryParameters: {
+        'skip': skip,
+        'limit': limit,
+        'select': _fields,
+        ..._sortParameters(sort),
+      },
+    );
+    return _parse(() => ProductsPage.fromJson(json));
+  }
+
+  /// How DummyJSON is asked for each order. The server sorts the whole
+  /// catalog, so page 2 continues where page 1 stopped.
+  static Map<String, Object?> _sortParameters(ProductSort sort) {
+    return switch (sort) {
+      ProductSort.featured => const {}, // the API's own order
+      ProductSort.priceLowToHigh => const {'sortBy': 'price', 'order': 'asc'},
+      ProductSort.priceHighToLow => const {'sortBy': 'price', 'order': 'desc'},
+      ProductSort.topRated => const {'sortBy': 'rating', 'order': 'desc'},
+      ProductSort.titleAToZ => const {'sortBy': 'title', 'order': 'asc'},
+    };
+  }
+
+  @override
+  Future<ProductsPage> searchProducts(
+    String query, {
+    required int limit,
+  }) async {
+    // dio encodes the query parameters, so any text the user types is safe
+    // here (spaces, "&", ...).
+    final json = await _apiClient.getJson(
+      '/products/search',
+      queryParameters: {'q': query, 'limit': limit, 'select': _fields},
     );
     return _parse(() => ProductsPage.fromJson(json));
   }
@@ -33,6 +74,24 @@ class DummyJsonProductsRepository implements ProductsRepository {
       queryParameters: {'select': _fields},
     );
     return _parse(() => Product.fromJson(json));
+  }
+
+  /// The categories, once they've been loaded. They rarely change, so they
+  /// are fetched once per app session and then reused.
+  List<ProductCategory>? _categories;
+
+  @override
+  Future<List<ProductCategory>> getCategories() async {
+    final cached = _categories;
+    if (cached != null) {
+      return cached;
+    }
+
+    final json = await _apiClient.getJsonList('/products/categories');
+    final categories = _parse(() => ProductCategory.listFromJson(json));
+    // Every caller gets this same list, so nobody may change it. A failure
+    // above throws before this line: errors are never remembered.
+    return _categories = List.unmodifiable(categories);
   }
 }
 

@@ -9,6 +9,7 @@ import '../helpers/pump_app.dart';
 const _screens = {
   'home': '/',
   'product details': '/product/1',
+  'search': '/search',
   'categories': '/categories',
   'category products': '/categories/laptops',
   'cart': '/cart',

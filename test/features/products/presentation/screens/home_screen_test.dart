@@ -5,13 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
-import 'package:e_commerce_learn/features/products/data/mock_products.dart';
-import 'package:e_commerce_learn/features/products/data/models/product.dart';
+import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
+import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
+import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
 
 import '../../../../helpers/fake_products_repository.dart';
+import '../../../../helpers/mock_products.dart';
 import '../../../../helpers/pump_app.dart';
 
 void main() {
@@ -40,7 +42,9 @@ void main() {
 
       await pumpHomeScreen(tester, repository: repository);
 
-      expect(repository.requestedPages, [(skip: 0, limit: 30)]);
+      expect(repository.requestedPages, [
+        (skip: 0, limit: 30, category: null, sort: ProductSort.featured),
+      ]);
     });
 
     testWidgets('a failed load shows the error, and "Try again" reloads', (
@@ -81,22 +85,112 @@ void main() {
       expect(find.text('No products yet'), findsOneWidget);
       expect(find.text('All'), findsNothing);
     });
+  });
 
-    testWidgets('the chips come from the loaded products', (tester) async {
-      // A catalog with only furniture and groceries in it.
+  group('category chips', () {
+    testWidgets('come from the categories, with their real names', (
+      tester,
+    ) async {
       final repository = FakeProductsRepository(
-        products: [
-          for (final product in mockProducts.take(2))
-            _withCategory(product, 'furniture'),
-          _withCategory(mockProducts[2], 'groceries'),
+        categories: const [
+          ProductCategory(slug: 'beauty', name: 'Beauty'),
+          ProductCategory(slug: 'home-decoration', name: 'Home Decoration'),
         ],
       );
 
       await pumpHomeScreen(tester, repository: repository);
 
-      expect(find.text('Furniture'), findsOneWidget);
-      expect(find.text('Groceries'), findsOneWidget);
-      expect(find.text('Beauty'), findsNothing);
+      expect(find.text('Home Decoration'), findsOneWidget);
+      expect(find.text('Laptops'), findsNothing); // not in the category list
+    });
+
+    testWidgets('selecting one asks the API for that category', (tester) async {
+      final repository = FakeProductsRepository();
+      await pumpHomeScreen(tester, repository: repository);
+
+      await tester.tap(find.text('Laptops'));
+      await tester.pumpAndSettle();
+
+      expect(repository.requestedPages.last.category, 'laptops');
+      expect(find.text('Apple MacBook Pro 14 Inch Space Grey'), findsOneWidget);
+    });
+
+    testWidgets('stay visible, with the new choice selected, while loading', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository();
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.gate = Completer<void>(); // hold the next answer
+      await tester.tap(find.text('Laptops'));
+      await tester.pump();
+
+      expect(find.byType(LoadingView), findsOneWidget);
+      final laptopsChip = tester.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, 'Laptops'),
+      );
+      expect(laptopsChip.selected, isTrue);
+
+      repository.gate!.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('if categories fail to load, the catalog still shows', (
+      tester,
+    ) async {
+      await pumpHomeScreen(
+        tester,
+        repository: FakeProductsRepository(
+          categoriesError: const NetworkException(),
+        ),
+      );
+
+      expect(find.text('Essence Mascara Lash Princess'), findsOneWidget);
+      expect(find.byType(ErrorView), findsNothing);
+      expect(find.text('All'), findsNothing); // no chips
+    });
+
+    testWidgets('come back with "Try again" after starting offline', (
+      tester,
+    ) async {
+      // Offline: the catalog and the categories both fail.
+      final repository = FakeProductsRepository(
+        error: const NetworkException(),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.error = null; // the connection is back
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+
+      expect(repository.getCategoriesCalls, 2);
+      expect(find.text('All'), findsOneWidget);
+    });
+
+    testWidgets('come back with pull to refresh, if they had failed', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository(
+        categoriesError: const NetworkException(),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.categoriesError = null;
+      await _pullToRefresh(tester);
+
+      expect(find.text('All'), findsOneWidget);
+    });
+
+    testWidgets('are not loaded again by pull to refresh once shown', (
+      tester,
+    ) async {
+      // Reloading would hide the chips for a moment, for nothing.
+      final repository = FakeProductsRepository();
+      await pumpHomeScreen(tester, repository: repository);
+
+      await _pullToRefresh(tester);
+
+      expect(repository.getCategoriesCalls, 1);
     });
   });
 
@@ -126,6 +220,90 @@ void main() {
       expect(find.text('Essence Mascara Lash Princess'), findsOneWidget);
       expect(find.byType(ErrorView), findsNothing);
       expect(find.textContaining("Couldn't refresh"), findsOneWidget);
+    });
+  });
+
+  group('loading more', () {
+    testWidgets('scrolling to the end loads and shows the next page', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository(
+        products: generatedProducts(45),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+
+      await scrollProductGridToEnd(tester); // loads page 2
+      await scrollProductGridToEnd(tester); // shows its end
+
+      expect(repository.requestedPages.map((page) => page.skip), [0, 30]);
+      expect(find.text('Product 45'), findsOneWidget);
+    });
+
+    testWidgets('fast scrolling asks for each page only once', (tester) async {
+      final repository = FakeProductsRepository(
+        products: generatedProducts(45),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.gate = Completer<void>(); // hold page 2
+      for (var i = 0; i < 5; i++) {
+        await tester.fling(
+          find.byType(ProductGrid),
+          const Offset(0, -3000),
+          5000,
+        );
+        // Not pumpAndSettle: the spinner never stops while page 2 waits.
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(repository.requestedPages.map((page) => page.skip), [0, 30]);
+
+      repository.gate!.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a failed load keeps the products, and "Try again" works', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository(
+        products: generatedProducts(45),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+
+      repository.error = const NetworkException();
+      await scrollProductGridToEnd(tester);
+
+      expect(find.text('Product 30'), findsOneWidget);
+      expect(find.byType(ErrorView), findsNothing);
+      expect(find.textContaining("Couldn't load more"), findsOneWidget);
+
+      repository.error = null; // the connection is back
+      await tester.ensureVisible(find.text('Try again'));
+      await tester.pumpAndSettle(); // lay out the scrolled position
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+      await scrollProductGridToEnd(tester);
+
+      expect(find.text('Product 45'), findsOneWidget);
+      expect(find.textContaining("Couldn't load more"), findsNothing);
+    });
+
+    testWidgets('after a failure, scrolling alone does not try again', (
+      tester,
+    ) async {
+      final repository = FakeProductsRepository(
+        products: generatedProducts(45),
+      );
+      await pumpHomeScreen(tester, repository: repository);
+      repository.error = const NetworkException();
+      await scrollProductGridToEnd(tester);
+
+      await tester.drag(find.byType(ProductGrid), const Offset(0, 500));
+      await tester.pumpAndSettle();
+      await scrollProductGridToEnd(tester);
+
+      expect(repository.getProductsCalls, 2); // page 1, and page 2 once
     });
   });
 
@@ -182,19 +360,6 @@ void main() {
 /// Drags the product grid down and lets go, like a user pulling to refresh,
 /// then waits until the refresh has finished.
 Future<void> _pullToRefresh(WidgetTester tester) async {
-  await tester.fling(find.byType(GridView), const Offset(0, 300), 1000);
+  await tester.fling(find.byType(ProductGrid), const Offset(0, 300), 1000);
   await tester.pumpAndSettle();
-}
-
-/// A copy of [product] in a different [category].
-Product _withCategory(Product product, String category) {
-  return Product(
-    id: product.id,
-    title: product.title,
-    description: product.description,
-    priceCents: product.priceCents,
-    rating: product.rating,
-    category: category,
-    thumbnailUrl: product.thumbnailUrl,
-  );
 }

@@ -61,6 +61,38 @@ void main() {
     });
   });
 
+  group('getJsonList (for endpoints that answer with a JSON array)', () {
+    test('returns the decoded list', () async {
+      final client = _clientThat(
+        (_) => jsonResponse(readFixture('categories.json')),
+      );
+
+      final json = await client.getJsonList('/products/categories');
+
+      expect(json, hasLength(3));
+    });
+
+    test('an object instead of a list → UnexpectedResponseException', () async {
+      final client = _clientThat((_) => jsonResponse('{"oops": true}'));
+
+      await expectLater(
+        client.getJsonList('/products/categories'),
+        throwsA(isA<UnexpectedResponseException>()),
+      );
+    });
+
+    test('failures become our own error types too', () async {
+      final client = _clientThat(
+        (_) => jsonResponse('{"message": "oops"}', statusCode: 500),
+      );
+
+      await expectLater(
+        client.getJsonList('/products/categories'),
+        throwsA(isA<ServerException>()),
+      );
+    });
+  });
+
   group('failures become our own error types', () {
     test('404 → NotFoundException', () async {
       final client = _clientThat(

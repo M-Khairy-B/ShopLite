@@ -6,6 +6,7 @@ import 'package:e_commerce_learn/features/categories/presentation/screens/catego
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
+import 'package:e_commerce_learn/features/search/presentation/screens/search_screen.dart';
 
 import '../helpers/pump_app.dart';
 
@@ -39,6 +40,23 @@ void main() {
 
     expect(find.byType(ProductDetailsScreen), findsNothing);
     expect(find.byType(HomeScreen), findsOneWidget);
+  });
+
+  testWidgets('/search shows search, with home underneath', (tester) async {
+    await _pumpAt(tester, '/search');
+
+    expect(find.byType(SearchScreen), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+  });
+
+  testWidgets('/search/product/78 shows that product', (tester) async {
+    await _pumpAt(tester, '/search/product/78');
+
+    expect(find.text('Apple MacBook Pro 14 Inch Space Grey'), findsOneWidget);
   });
 
   testWidgets('/product/abc (not a number) shows page not found', (

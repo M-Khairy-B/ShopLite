@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/features/products/data/models/products_page.dart';
 
+import '../../../../helpers/mock_products.dart';
+
 void main() {
   test('reads a page of products from a real API response', () {
     final json = jsonDecode(
@@ -18,6 +20,30 @@ void main() {
     expect(page.limit, 2);
   });
 
+  group('hasMore', () {
+    ProductsPage page({required int skip, required int count, int total = 45}) {
+      return ProductsPage(
+        products: generatedProducts(count),
+        total: total,
+        skip: skip,
+        limit: 30,
+      );
+    }
+
+    test('is true when products exist after this page', () {
+      expect(page(skip: 0, count: 30).hasMore, isTrue);
+    });
+
+    test('is false for the last page', () {
+      expect(page(skip: 30, count: 15).hasMore, isFalse);
+    });
+
+    test('is false for an empty page, whatever the total says', () {
+      // Otherwise a server that miscounts would make the app ask forever.
+      expect(page(skip: 30, count: 0).hasMore, isFalse);
+    });
+  });
+
   test('throws a FormatException when "products" is not a list', () {
     expect(
       () => ProductsPage.fromJson({
@@ -27,6 +53,34 @@ void main() {
         'limit': 0,
       }),
       throwsFormatException,
+    );
+  });
+
+  test('a broken product names both the list and its field', () {
+    // The whole path to the problem: products → price.
+    expect(
+      () => ProductsPage.fromJson({
+        'products': [
+          {
+            'id': 1,
+            'title': 'No price',
+            'description': 'Everything else is fine.',
+            'rating': 4,
+            'category': 'beauty',
+            'thumbnail': 'https://cdn.dummyjson.com/example/thumbnail.webp',
+          },
+        ],
+        'total': 1,
+        'skip': 0,
+        'limit': 1,
+      }),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.message,
+          'message',
+          allOf(contains('"products"'), contains('"price"')),
+        ),
+      ),
     );
   });
 

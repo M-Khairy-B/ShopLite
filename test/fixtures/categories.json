@@ -1,0 +1,17 @@
+[
+  {
+    "slug": "beauty",
+    "name": "Beauty",
+    "url": "https://dummyjson.com/products/category/beauty"
+  },
+  {
+    "slug": "home-decoration",
+    "name": "Home Decoration",
+    "url": "https://dummyjson.com/products/category/home-decoration"
+  },
+  {
+    "slug": "laptops",
+    "name": "Laptops",
+    "url": "https://dummyjson.com/products/category/laptops"
+  }
+]

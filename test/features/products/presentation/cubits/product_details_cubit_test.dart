@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
-import 'package:e_commerce_learn/features/products/data/mock_products.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/product_details_cubit.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/product_details_state.dart';
 
 import '../../../../helpers/fake_products_repository.dart';
+import '../../../../helpers/mock_products.dart';
 
 void main() {
   // Product 1 in the fake catalog.

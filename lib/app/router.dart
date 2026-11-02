@@ -8,6 +8,7 @@ import 'package:e_commerce_learn/features/categories/presentation/screens/catego
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/profile/presentation/screens/profile_screen.dart';
+import 'package:e_commerce_learn/features/search/presentation/screens/search_screen.dart';
 
 /// Creates the app's router: the map from URL-style paths to screens.
 ///
@@ -33,7 +34,16 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
                 builder: (context, state) => const HomeScreen(),
                 // Nested under '/', so opening '/product/78' directly
                 // still puts the home screen underneath it.
-                routes: [_productDetailsRoute()],
+                routes: [
+                  _productDetailsRoute(),
+                  GoRoute(
+                    path: 'search',
+                    builder: (context, state) => const SearchScreen(),
+                    // '/search/product/78': a result opens above the
+                    // results, so back returns to them.
+                    routes: [_productDetailsRoute()],
+                  ),
+                ],
               ),
             ],
           ),
