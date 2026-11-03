@@ -73,6 +73,60 @@ void main() {
     });
   });
 
+  group('the limit of $maxQuantityPerItem per product', () {
+    test('is 10', () {
+      expect(maxQuantityPerItem, 10);
+    });
+
+    test('add stops at the limit: 8 in the cart, add 4, and there are 10', () {
+      final cart = const Cart.empty()
+          .add(mascara, quantity: 8)
+          .add(mascara, quantity: 4);
+
+      expect(cart.quantityOf(1), maxQuantityPerItem);
+    });
+
+    test('add can reach the limit exactly', () {
+      final cart = const Cart.empty()
+          .add(mascara, quantity: 7)
+          .add(mascara, quantity: 3);
+
+      expect(cart.quantityOf(1), 10);
+    });
+
+    test('add at the limit changes nothing', () {
+      final full = const Cart.empty().add(mascara, quantity: 10);
+
+      expect(full.add(mascara), full);
+    });
+
+    test('a new line with too many starts at the limit', () {
+      final cart = const Cart.empty().add(mascara, quantity: 15);
+
+      expect(cart.quantityOf(1), maxQuantityPerItem);
+    });
+
+    test('the limit is per product, not for the whole cart', () {
+      final cart = const Cart.empty()
+          .add(mascara, quantity: 10)
+          .add(palette, quantity: 10);
+
+      expect(cart.itemCount, 20);
+    });
+
+    test('updateQuantity accepts the limit itself', () {
+      final cart = const Cart.empty().add(mascara).updateQuantity(1, 10);
+
+      expect(cart.quantityOf(1), 10);
+    });
+
+    test('updateQuantity above the limit is an ArgumentError', () {
+      final cart = const Cart.empty().add(mascara);
+
+      expect(() => cart.updateQuantity(1, 11), throwsArgumentError);
+    });
+  });
+
   group('remove', () {
     test('takes out the whole line, whatever its quantity', () {
       final cart = const Cart.empty()

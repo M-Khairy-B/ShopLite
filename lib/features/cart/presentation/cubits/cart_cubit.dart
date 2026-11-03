@@ -31,11 +31,16 @@ class CartCubit extends Cubit<Cart> {
     emit(state.remove(productId));
   }
 
-  /// One more of a product that is already in the cart.
+  /// One more of a product that is already in the cart, up to
+  /// [maxQuantityPerItem].
   void increment(int productId) {
     final quantity = state.quantityOf(productId);
     if (quantity == 0) {
       return; // not in the cart: "+" only exists on a cart line
+    }
+    if (quantity >= maxQuantityPerItem) {
+      // [Cart.updateQuantity] would throw: at the limit, "+" does nothing.
+      return;
     }
     emit(state.updateQuantity(productId, quantity + 1));
   }

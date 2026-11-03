@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:e_commerce_learn/core/utils/read_json.dart';
@@ -5,6 +7,10 @@ import 'package:e_commerce_learn/features/cart/data/models/cart_item.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 
 part 'cart.g.dart';
+
+/// The most of one product a cart can hold. The only place this number is
+/// written: the cart, the cubit and the "+" button all use this name.
+const maxQuantityPerItem = 10;
 
 /// The shopping cart: a list of [CartItem]s, one per product, in the order
 /// they were first added.
@@ -51,22 +57,26 @@ class Cart extends Equatable {
   /// Adds [quantity] of [product]. If it's already in the cart, its quantity
   /// goes up, and the line keeps its place and its first price.
   ///
+  /// Never goes above [maxQuantityPerItem]: only what still fits is added
+  /// (8 in the cart, add 4: 10). Tapping "Add to cart" again is something a
+  /// user does, not a bug, so it isn't refused.
+  ///
   /// Throws an [ArgumentError] if [quantity] is less than 1.
   Cart add(Product product, {int quantity = 1}) {
-    _checkQuantity(quantity);
+    if (quantity < 1) {
+      throw ArgumentError.value(quantity, 'quantity', 'must be at least 1');
+    }
     final current = quantityOf(product.id);
+    final updated = min(current + quantity, maxQuantityPerItem);
     if (current == 0) {
       return Cart(
         items: [
           ...items,
-          CartItem.fromProduct(product, quantity: quantity),
+          CartItem.fromProduct(product, quantity: updated),
         ],
       );
     }
-    return _withLine(
-      product.id,
-      (item) => item.withQuantity(current + quantity),
-    );
+    return _withLine(product.id, (item) => item.withQuantity(updated));
   }
 
   /// Removes the product's line. A product that isn't in the cart is
@@ -83,9 +93,18 @@ class Cart extends Equatable {
   /// Sets the quantity of the product's line. A product that isn't in the
   /// cart is ignored. To take a product out, use [remove].
   ///
-  /// Throws an [ArgumentError] if [quantity] is less than 1.
+  /// Throws an [ArgumentError] if [quantity] is not from 1 to
+  /// [maxQuantityPerItem]. Unlike [add], this is always the calling code's
+  /// mistake: the screen offers "+" and "−", which never ask for more than
+  /// one step, and disables "+" at the limit.
   Cart updateQuantity(int productId, int quantity) {
-    _checkQuantity(quantity);
+    if (quantity < 1 || quantity > maxQuantityPerItem) {
+      throw ArgumentError.value(
+        quantity,
+        'quantity',
+        'must be from 1 to $maxQuantityPerItem',
+      );
+    }
     return _withLine(productId, (item) => item.withQuantity(quantity));
   }
 
@@ -98,12 +117,6 @@ class Cart extends Equatable {
           item.productId == productId ? change(item) : item,
       ],
     );
-  }
-
-  static void _checkQuantity(int quantity) {
-    if (quantity < 1) {
-      throw ArgumentError.value(quantity, 'quantity', 'must be at least 1');
-    }
   }
 
   @override

@@ -86,6 +86,37 @@ void main() {
     );
   });
 
+  group('the limit of $maxQuantityPerItem per product', () {
+    /// A cart with [quantity] mascaras.
+    Cart mascaras(int quantity) =>
+        const Cart.empty().add(mascara, quantity: quantity);
+
+    blocTest<CartCubit, Cart>(
+      'add past the limit stops at it',
+      build: CartCubit.new,
+      seed: () => mascaras(8),
+      act: (cubit) => cubit.add(mascara, quantity: 4),
+      expect: () => [mascaras(maxQuantityPerItem)],
+    );
+
+    blocTest<CartCubit, Cart>(
+      'increment at the limit emits nothing, and does not throw',
+      build: CartCubit.new,
+      seed: () => mascaras(maxQuantityPerItem),
+      act: (cubit) => cubit.increment(1),
+      expect: () => <Cart>[],
+      verify: (cubit) => expect(cubit.state.quantityOf(1), 10),
+    );
+
+    blocTest<CartCubit, Cart>(
+      'increment up to the limit still works',
+      build: CartCubit.new,
+      seed: () => mascaras(9),
+      act: (cubit) => cubit.increment(1),
+      expect: () => [mascaras(10)],
+    );
+  });
+
   group('decrement', () {
     blocTest<CartCubit, Cart>(
       'takes one from that line',
