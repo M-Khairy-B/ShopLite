@@ -23,7 +23,7 @@ void main() {
       final repository = FakeProductsRepository(gate: gate);
 
       await tester.pumpWidget(
-        withProductsRepository(
+        withAppProviders(
           const MaterialApp(home: HomeScreen()),
           repository: repository,
         ),

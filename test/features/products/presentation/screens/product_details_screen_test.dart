@@ -12,7 +12,7 @@ import '../../../../helpers/pump_app.dart';
 
 /// The details screen for [productId], getting products from [repository].
 Widget _details(FakeProductsRepository repository, {int productId = 1}) {
-  return withProductsRepository(
+  return withAppProviders(
     MaterialApp(home: ProductDetailsScreen(productId: productId)),
     repository: repository,
   );

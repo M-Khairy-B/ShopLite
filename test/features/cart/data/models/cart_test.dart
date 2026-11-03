@@ -144,6 +144,59 @@ void main() {
     });
   });
 
+  group('insertAt (Undo)', () {
+    /// 2 mascaras, 1 palette, 1 perfume.
+    Cart threeLines() =>
+        const Cart.empty().add(mascara, quantity: 2).add(palette).add(perfume);
+
+    test('puts a removed line back in its place, exactly as it was', () {
+      final before = threeLines();
+      final removed = before.items[1]; // the palette
+
+      final restored = before.remove(2).insertAt(1, removed);
+
+      expect(restored, before);
+    });
+
+    test('keeps what changed in other lines since the removal', () {
+      final before = threeLines();
+      final removed = before.items[1];
+
+      final restored = before
+          .remove(2)
+          .updateQuantity(1, 5)
+          .insertAt(1, removed);
+
+      expect(lines(restored), [(1, 5), (2, 1), (6, 1)]);
+    });
+
+    test('goes at the end if lines removed since make the index too big', () {
+      final before = threeLines();
+      final perfumeLine = before.items[2];
+
+      final restored = before.remove(6).remove(2).insertAt(2, perfumeLine);
+
+      expect(lines(restored), [(1, 2), (6, 1)]);
+    });
+
+    test('a product that is in the cart again changes nothing', () {
+      final before = threeLines();
+      final removed = before.items[1];
+      final readded = before.remove(2).add(palette, quantity: 3);
+
+      expect(readded.insertAt(1, removed), readded);
+    });
+
+    test('a line with an impossible quantity is an ArgumentError', () {
+      final tooMany = CartItem.fromProduct(palette, quantity: 11);
+
+      expect(
+        () => threeLines().remove(2).insertAt(1, tooMany),
+        throwsArgumentError,
+      );
+    });
+  });
+
   group('updateQuantity', () {
     test('sets the quantity of that line only', () {
       final cart = const Cart.empty()

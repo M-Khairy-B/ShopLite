@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart.dart';
+import 'package:e_commerce_learn/features/cart/data/models/cart_item.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 
 /// The shopping cart, shared by the whole app.
@@ -54,6 +55,15 @@ class CartCubit extends Cubit<Cart> {
       return; // not in the cart, or already at 1
     }
     emit(state.updateQuantity(productId, quantity - 1));
+  }
+
+  /// Puts a removed line back where it was, for the snackbar's Undo. Only
+  /// that line: anything changed in the cart since stays as it is.
+  void restore(int index, CartItem item) {
+    if (state.quantityOf(item.productId) > 0) {
+      return; // added again since: that line stays
+    }
+    emit(state.insertAt(index, item));
   }
 
   /// Empties the cart (after an order is placed, in Phase 8).

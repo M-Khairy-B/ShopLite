@@ -16,7 +16,7 @@ Future<void> _pumpAt(WidgetTester tester, String location) async {
   addTearDown(router.dispose);
 
   await tester.pumpWidget(
-    withProductsRepository(MaterialApp.router(routerConfig: router)),
+    withAppProviders(MaterialApp.router(routerConfig: router)),
   );
   await tester.pumpAndSettle();
 }

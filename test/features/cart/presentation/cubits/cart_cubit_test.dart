@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart.dart';
+import 'package:e_commerce_learn/features/cart/data/models/cart_item.dart';
 import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.dart';
 
 import '../../../../helpers/mock_products.dart';
@@ -140,6 +141,29 @@ void main() {
       build: CartCubit.new,
       seed: twoLines,
       act: (cubit) => cubit.decrement(99),
+      expect: () => <Cart>[],
+    );
+  });
+
+  group('restore', () {
+    blocTest<CartCubit, Cart>(
+      'puts a removed line back where it was',
+      build: CartCubit.new,
+      seed: twoLines,
+      act: (cubit) {
+        final removed = cubit.state.items[0];
+        cubit
+          ..remove(1)
+          ..restore(0, removed);
+      },
+      expect: () => [const Cart.empty().add(palette), twoLines()],
+    );
+
+    blocTest<CartCubit, Cart>(
+      'a product that is in the cart again emits nothing',
+      build: CartCubit.new,
+      seed: twoLines,
+      act: (cubit) => cubit.restore(0, CartItem.fromProduct(mascara)),
       expect: () => <Cart>[],
     );
   });

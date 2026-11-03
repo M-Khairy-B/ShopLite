@@ -13,7 +13,7 @@ import '../../../../helpers/pump_app.dart';
 
 /// The Categories tab, getting its categories from [repository].
 Widget _categoriesScreen(FakeProductsRepository repository) {
-  return withProductsRepository(
+  return withAppProviders(
     const MaterialApp(home: CategoriesScreen()),
     repository: repository,
   );

@@ -2,18 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/app/app.dart';
+import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
 
 import 'fake_products_repository.dart';
 
-/// Puts [repository] (a fake catalog by default) above [child], the way
-/// `ShopLiteApp` does for the real app, so screens below can read it.
-Widget withProductsRepository(Widget child, {ProductsRepository? repository}) {
+/// Puts what `ShopLiteApp` provides above [child], so screens below can
+/// read it: [repository] (a fake catalog by default) and [cart] (a new,
+/// empty cart by default).
+///
+/// Pass your own [cart] to fill it before the test, or to check it after.
+Widget withAppProviders(
+  Widget child, {
+  ProductsRepository? repository,
+  CartCubit? cart,
+}) {
   return RepositoryProvider<ProductsRepository>.value(
     value: repository ?? FakeProductsRepository(),
-    child: child,
+    child: cart == null
+        ? BlocProvider(create: (_) => CartCubit(), child: child)
+        : BlocProvider.value(value: cart, child: child),
   );
 }
 
@@ -46,7 +56,7 @@ Future<void> pumpHomeScreen(
   ProductsRepository? repository,
 }) async {
   await tester.pumpWidget(
-    withProductsRepository(
+    withAppProviders(
       const MaterialApp(home: HomeScreen()),
       repository: repository,
     ),

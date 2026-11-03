@@ -19,7 +19,7 @@ Future<void> _pumpSearchScreen(
   FakeProductsRepository? repository,
 }) async {
   await tester.pumpWidget(
-    withProductsRepository(
+    withAppProviders(
       const MaterialApp(home: SearchScreen()),
       repository: repository,
     ),

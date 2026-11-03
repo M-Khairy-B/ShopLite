@@ -108,6 +108,28 @@ class Cart extends Equatable {
     return _withLine(productId, (item) => item.withQuantity(quantity));
   }
 
+  /// Puts [item] back at [index], as it was: Undo after [remove].
+  ///
+  /// [index] is kept within the list, because lines removed since then can
+  /// make it too big. If the product is in the cart again (added since),
+  /// nothing changes: that newer line stays.
+  ///
+  /// Throws an [ArgumentError] if the item's quantity is not from 1 to
+  /// [maxQuantityPerItem].
+  Cart insertAt(int index, CartItem item) {
+    if (item.quantity < 1 || item.quantity > maxQuantityPerItem) {
+      throw ArgumentError.value(
+        item.quantity,
+        'item.quantity',
+        'must be from 1 to $maxQuantityPerItem',
+      );
+    }
+    if (quantityOf(item.productId) > 0) {
+      return this;
+    }
+    return Cart(items: [...items]..insert(index.clamp(0, items.length), item));
+  }
+
   /// A new cart where the line for [productId] is replaced by [change]'s
   /// result, in the same place. Every other line is the same object.
   Cart _withLine(int productId, CartItem Function(CartItem item) change) {
