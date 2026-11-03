@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/router.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
+import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 
 class ShopLiteApp extends StatefulWidget {
@@ -42,14 +43,21 @@ class _ShopLiteAppState extends State<ShopLiteApp> {
     // it.
     return RepositoryProvider<ProductsRepository>.value(
       value: widget.productsRepository,
-      child: MaterialApp.router(
-        title: 'ShopLite',
-        theme: buildAppTheme(),
-        darkTheme: buildAppTheme(brightness: Brightness.dark),
-        // Follow the phone's light/dark setting.
-        themeMode: ThemeMode.system,
-        routerConfig: _router,
-        debugShowCheckedModeBanner: false,
+      // The cart is app state: one cart, shared by every screen, that lives
+      // as long as the app. So it's provided here, above the router, and
+      // not inside a route (each route would get its own cart). `create`,
+      // not `.value`: this provider owns the cubit and closes it.
+      child: BlocProvider(
+        create: (_) => CartCubit(),
+        child: MaterialApp.router(
+          title: 'ShopLite',
+          theme: buildAppTheme(),
+          darkTheme: buildAppTheme(brightness: Brightness.dark),
+          // Follow the phone's light/dark setting.
+          themeMode: ThemeMode.system,
+          routerConfig: _router,
+          debugShowCheckedModeBanner: false,
+        ),
       ),
     );
   }
