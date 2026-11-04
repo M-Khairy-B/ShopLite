@@ -24,6 +24,23 @@ void main() {
     expect(find.text('1'), findsOneWidget);
   });
 
+  testWidgets('reports every new quantity to onChanged', (tester) async {
+    final reported = <int>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: QuantitySelector(onChanged: reported.add)),
+      ),
+    );
+
+    // A pump after each tap: "−" is only enabled once 2 is on screen.
+    for (final tooltip in ['Increase', 'Increase', 'Decrease']) {
+      await tester.tap(find.byTooltip('$tooltip quantity'));
+      await tester.pump();
+    }
+
+    expect(reported, [2, 3, 2]);
+  });
+
   testWidgets('cannot go below 1', (tester) async {
     await tester.pumpWidget(buildSelector());
 

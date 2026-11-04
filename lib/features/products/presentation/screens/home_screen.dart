@@ -7,6 +7,7 @@ import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/core/widgets/empty_view.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
+import 'package:e_commerce_learn/features/cart/presentation/add_to_cart.dart';
 import 'package:e_commerce_learn/features/categories/presentation/cubits/categories_cubit.dart';
 import 'package:e_commerce_learn/features/categories/presentation/cubits/categories_state.dart';
 import 'package:e_commerce_learn/features/products/data/product_sort.dart';
@@ -198,6 +199,7 @@ class _Catalog extends StatelessWidget {
             child: PagedProductGrid(
               state: state,
               onProductTap: (product) => context.push('/product/${product.id}'),
+              onAddToCart: (product) => addToCart(context, product),
             ),
           ),
           ProductsEmpty() => const EmptyView(

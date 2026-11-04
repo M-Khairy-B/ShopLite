@@ -19,9 +19,19 @@ import 'package:e_commerce_learn/features/products/data/models/product.dart';
 class CartCubit extends Cubit<Cart> {
   CartCubit() : super(const Cart.empty());
 
-  /// Adds one [product], or [quantity] of it.
-  void add(Product product, {int quantity = 1}) {
-    emit(state.add(product, quantity: quantity));
+  /// Adds one [product], or [quantity] of it, up to [maxQuantityPerItem].
+  ///
+  /// Returns how many were really added: fewer than [quantity] near the
+  /// limit, and 0 at it. The screen uses this to say what happened.
+  ///
+  /// At the limit the new cart equals the old one, and Cubit skips it: a
+  /// line can only be full after an emit. (A cubit that starts from a saved
+  /// cart, in Task 6, needs its own check here, with a test.)
+  int add(Product product, {int quantity = 1}) {
+    final before = state.quantityOf(product.id);
+    final cart = state.add(product, quantity: quantity);
+    emit(cart);
+    return cart.quantityOf(product.id) - before;
   }
 
   /// Takes the product's whole line out of the cart.

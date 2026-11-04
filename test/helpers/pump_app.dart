@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/app/app.dart';
+import 'package:e_commerce_learn/app/router.dart';
 import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
@@ -38,6 +39,26 @@ Future<void> pumpShopLiteApp(
 }) async {
   await tester.pumpWidget(
     ShopLiteApp(productsRepository: repository ?? FakeProductsRepository()),
+  );
+  await tester.pumpAndSettle();
+}
+
+/// Starts the app's router at [location], with what `ShopLiteApp` provides
+/// above it ([cart]: a new, empty one by default), and waits until the
+/// screen has finished loading.
+///
+/// Like [pumpShopLiteApp], but on any page, and with a cart the test can
+/// fill before and check after. A test that passes [cart] closes it.
+Future<void> pumpAppAt(
+  WidgetTester tester,
+  String location, {
+  CartCubit? cart,
+}) async {
+  final router = createAppRouter(initialLocation: location);
+  addTearDown(router.dispose);
+
+  await tester.pumpWidget(
+    withAppProviders(MaterialApp.router(routerConfig: router), cart: cart),
   );
   await tester.pumpAndSettle();
 }

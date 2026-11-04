@@ -19,19 +19,25 @@ const double _nearEndDistance = 600;
 /// A grid of product cards whose number of columns follows the available
 /// width.
 ///
-/// The grid doesn't decide where a tap leads, or how to get more products:
-/// the screen using it does, through [onProductTap] and [onEndReached].
+/// The grid doesn't decide where a tap leads, what "Add to cart" does, or
+/// how to get more products: the screen using it does, through
+/// [onProductTap], [onAddToCart] and [onEndReached].
 class ProductGrid extends StatefulWidget {
   const ProductGrid({
     super.key,
     required this.products,
     required this.onProductTap,
+    this.onAddToCart,
     this.onEndReached,
     this.footer,
   });
 
   final List<Product> products;
   final void Function(Product product) onProductTap;
+
+  /// Called by a card's "Add to cart" button. If `null`, cards have no such
+  /// button.
+  final void Function(Product product)? onAddToCart;
 
   /// Called when the user scrolls near the end, and when the products don't
   /// fill the screen (then there is nothing to scroll). It is called often,
@@ -138,12 +144,16 @@ class _ProductGridState extends State<ProductGrid> {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final product = widget.products[index];
+                    final onAddToCart = widget.onAddToCart;
 
                     return ProductCard(
                       // Ties the card to its product, not to its position.
                       key: ValueKey(product.id),
                       product: product,
                       onTap: () => widget.onProductTap(product),
+                      onAddToCart: onAddToCart == null
+                          ? null
+                          : () => onAddToCart(product),
                     );
                   },
                   childCount: widget.products.length,

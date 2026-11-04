@@ -40,6 +40,16 @@ void main() {
         const Cart.empty().add(mascara, quantity: 3),
       ],
     );
+
+    test('returns how many it really added, so the screen can say so', () {
+      final cubit = CartCubit();
+      addTearDown(cubit.close);
+
+      expect(cubit.add(mascara, quantity: 3), 3);
+      expect(cubit.add(mascara, quantity: 9), 7); // 3 + 7 = the limit
+      expect(cubit.add(mascara), 0); // already full
+      expect(cubit.state.quantityOf(1), maxQuantityPerItem);
+    });
   });
 
   group('remove', () {

@@ -11,17 +11,27 @@ import 'package:e_commerce_learn/features/products/presentation/widgets/product_
 /// The image fills whatever height is left after the text, so the card
 /// adapts to the size its parent gives it (for example, a grid cell).
 class ProductCard extends StatelessWidget {
-  const ProductCard({super.key, required this.product, this.onTap});
+  const ProductCard({
+    super.key,
+    required this.product,
+    this.onTap,
+    this.onAddToCart,
+  });
 
   final Product product;
 
   /// Called when the card is tapped. If `null`, the card is not tappable.
   final void Function()? onTap;
 
+  /// Called by the card's "Add to cart" button. If `null`, there is no
+  /// button.
+  final void Function()? onAddToCart;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final onAddToCart = this.onAddToCart;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -46,12 +56,27 @@ class ProductCard extends StatelessWidget {
                       style: textTheme.titleSmall,
                     ),
                     const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      formatPrice(product.priceCents),
-                      style: textTheme.titleMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            formatPrice(product.priceCents),
+                            style: textTheme.titleMedium?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        // Its own button inside the card: a tap here adds
+                        // to the cart, a tap anywhere else opens the
+                        // product.
+                        if (onAddToCart != null)
+                          IconButton(
+                            tooltip: 'Add to cart',
+                            onPressed: onAddToCart,
+                            icon: const Icon(Icons.add_shopping_cart),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Row(
