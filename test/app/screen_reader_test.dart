@@ -26,7 +26,7 @@ void main() {
   ) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
-      withProductsRepository(
+      withAppProviders(
         const MaterialApp(home: ProductDetailsScreen(productId: 1)),
       ),
     );

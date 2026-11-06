@@ -17,10 +17,14 @@ class PagedProductGrid extends StatelessWidget {
     super.key,
     required this.state,
     required this.onProductTap,
+    this.onAddToCart,
+    this.wishlistButtonBuilder,
   });
 
   final ProductsLoaded state;
   final void Function(Product product) onProductTap;
+  final void Function(Product product)? onAddToCart;
+  final Widget Function(Product product)? wishlistButtonBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +33,8 @@ class PagedProductGrid extends StatelessWidget {
     return ProductGrid(
       products: state.products,
       onProductTap: onProductTap,
+      onAddToCart: onAddToCart,
+      wishlistButtonBuilder: wishlistButtonBuilder,
       // Safe to call often: the cubit decides whether to load.
       onEndReached: cubit.loadMore,
       footer: _LoadMoreFooter(

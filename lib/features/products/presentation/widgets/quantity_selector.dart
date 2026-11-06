@@ -11,10 +11,15 @@ class QuantitySelector extends StatefulWidget {
     super.key,
     this.initialQuantity = 1,
     this.maxQuantity = 10,
+    this.onChanged,
   });
 
   final int initialQuantity;
   final int maxQuantity;
+
+  /// Called with the new quantity after every tap on − or +. The count
+  /// itself stays in this widget; the screen only hears about changes.
+  final void Function(int quantity)? onChanged;
 
   @override
   State<QuantitySelector> createState() => _QuantitySelectorState();
@@ -69,6 +74,7 @@ class _QuantitySelectorState extends State<QuantitySelector> {
       _quantity++;
     });
     _log('setState (quantity = $_quantity)');
+    widget.onChanged?.call(_quantity);
   }
 
   void _decrement() {
@@ -76,6 +82,7 @@ class _QuantitySelectorState extends State<QuantitySelector> {
       _quantity--;
     });
     _log('setState (quantity = $_quantity)');
+    widget.onChanged?.call(_quantity);
   }
 
   @override

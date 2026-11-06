@@ -9,6 +9,7 @@ import 'package:e_commerce_learn/features/products/presentation/screens/home_scr
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/profile/presentation/screens/profile_screen.dart';
 import 'package:e_commerce_learn/features/search/presentation/screens/search_screen.dart';
+import 'package:e_commerce_learn/features/wishlist/presentation/screens/wishlist_screen.dart';
 
 /// Creates the app's router: the map from URL-style paths to screens.
 ///
@@ -79,6 +80,15 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
               GoRoute(
                 path: '/profile',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'wishlist',
+                    builder: (context, state) => const WishlistScreen(),
+                    // '/profile/wishlist/product/78': a saved product
+                    // opens above the wishlist, in the Profile tab.
+                    routes: [_productDetailsRoute()],
+                  ),
+                ],
               ),
             ],
           ),

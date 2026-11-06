@@ -5,10 +5,12 @@ import 'package:e_commerce_learn/core/utils/text_format.dart';
 import 'package:e_commerce_learn/core/widgets/empty_view.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
+import 'package:e_commerce_learn/features/cart/presentation/add_to_cart.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_cubit.dart';
 import 'package:e_commerce_learn/features/products/presentation/cubits/products_state.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/paged_product_grid.dart';
+import 'package:e_commerce_learn/features/wishlist/presentation/widgets/wishlist_button.dart';
 
 /// Shows the products of one category. Opened at `/categories/:category`,
 /// where `category` is the category's slug.
@@ -40,6 +42,9 @@ class CategoryProductsScreen extends StatelessWidget {
                 // nested under the category, not under Home.
                 onProductTap: (product) =>
                     context.push('/categories/$category/product/${product.id}'),
+                onAddToCart: (product) => addToCart(context, product),
+                wishlistButtonBuilder: (product) =>
+                    WishlistButton(product: product),
               ),
               ProductsEmpty() => EmptyView(
                 icon: Icons.category_outlined,

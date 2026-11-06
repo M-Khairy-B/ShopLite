@@ -17,7 +17,7 @@ Widget _categoryScreen(
   FakeProductsRepository repository, {
   String category = 'laptops',
 }) {
-  return withProductsRepository(
+  return withAppProviders(
     MaterialApp(home: CategoryProductsScreen(category: category)),
     repository: repository,
   );

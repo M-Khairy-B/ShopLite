@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
+import 'package:e_commerce_learn/core/widgets/price_text.dart';
 import 'package:e_commerce_learn/features/products/data/models/product_category.dart';
 import 'package:e_commerce_learn/features/products/data/product_sort.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
@@ -23,7 +24,7 @@ void main() {
       final repository = FakeProductsRepository(gate: gate);
 
       await tester.pumpWidget(
-        withProductsRepository(
+        withAppProviders(
           const MaterialApp(home: HomeScreen()),
           repository: repository,
         ),
@@ -35,6 +36,13 @@ void main() {
 
       expect(find.byType(LoadingView), findsNothing);
       expect(find.text('Essence Mascara Lash Princess'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.widgetWithText(ProductCard, 'Essence Mascara Lash Princess'),
+          matching: find.widgetWithText(PriceText, r'$9.99'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('asks for the first page of the catalog', (tester) async {

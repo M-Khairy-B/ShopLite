@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:e_commerce_learn/features/cart/presentation/widgets/cart_tab_icon.dart';
 
 /// The frame around every tab: the current tab's screen plus the bottom
 /// navigation bar.
@@ -35,9 +36,10 @@ class AppShell extends StatelessWidget {
             selectedIcon: Icon(Icons.category),
             label: 'Categories',
           ),
+          // With a badge counting the items in the cart.
           NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
-            selectedIcon: Icon(Icons.shopping_cart),
+            icon: CartTabIcon(icon: Icons.shopping_cart_outlined),
+            selectedIcon: CartTabIcon(icon: Icons.shopping_cart),
             label: 'Cart',
           ),
           NavigationDestination(

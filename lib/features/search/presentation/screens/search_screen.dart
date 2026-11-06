@@ -5,10 +5,12 @@ import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/core/widgets/empty_view.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
+import 'package:e_commerce_learn/features/cart/presentation/add_to_cart.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
 import 'package:e_commerce_learn/features/search/presentation/cubits/search_cubit.dart';
 import 'package:e_commerce_learn/features/search/presentation/cubits/search_state.dart';
+import 'package:e_commerce_learn/features/wishlist/presentation/widgets/wishlist_button.dart';
 
 /// Search the catalog: a search field in the app bar, results below.
 ///
@@ -98,6 +100,9 @@ class _SearchViewState extends State<_SearchView> {
               products: products,
               onProductTap: (product) =>
                   context.push('/search/product/${product.id}'),
+              onAddToCart: (product) => addToCart(context, product),
+              wishlistButtonBuilder: (product) =>
+                  WishlistButton(product: product),
               footer: total > products.length
                   ? _MoreResultsNote(shown: products.length, total: total)
                   : null,
