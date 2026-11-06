@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/theme/app_spacing.dart';
-import 'package:e_commerce_learn/core/utils/price_formatter.dart';
 import 'package:e_commerce_learn/core/widgets/empty_view.dart';
+import 'package:e_commerce_learn/core/widgets/price_text.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart_item.dart';
 import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.dart';
@@ -162,10 +162,7 @@ class _CartSummary extends StatelessWidget {
                 ),
                 // For display only: the order's real total is worked out
                 // by the server from its own prices (Phase 9).
-                Text(
-                  formatPrice(cart.subtotalCents),
-                  style: textTheme.titleLarge,
-                ),
+                PriceText(cart.subtotalCents, style: textTheme.titleLarge),
               ],
             ),
             const SizedBox(height: AppSpacing.md),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
-import 'package:e_commerce_learn/core/utils/price_formatter.dart';
 import 'package:e_commerce_learn/core/utils/text_format.dart';
+import 'package:e_commerce_learn/core/widgets/price_text.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
 
@@ -87,8 +87,8 @@ class ProductCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            formatPrice(product.priceCents),
+                          child: PriceText(
+                            product.priceCents,
                             style: textTheme.titleMedium?.copyWith(
                               color: colorScheme.primary,
                               fontWeight: FontWeight.bold,

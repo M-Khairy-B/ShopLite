@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
+import 'package:e_commerce_learn/core/widgets/price_text.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 
 import '../../../../helpers/fake_products_repository.dart';
@@ -35,7 +36,7 @@ void main() {
 
     expect(find.byType(LoadingView), findsNothing);
     expect(find.text('Essence Mascara Lash Princess'), findsOneWidget);
-    expect(find.text('\$9.99'), findsOneWidget);
+    expect(find.widgetWithText(PriceText, '\$9.99'), findsOneWidget);
     expect(find.text('2.6'), findsOneWidget);
   });
 

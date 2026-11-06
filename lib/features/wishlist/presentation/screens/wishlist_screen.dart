@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/theme/app_spacing.dart';
-import 'package:e_commerce_learn/core/utils/price_formatter.dart';
 import 'package:e_commerce_learn/core/widgets/empty_view.dart';
+import 'package:e_commerce_learn/core/widgets/price_text.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
 import 'package:e_commerce_learn/features/wishlist/data/models/wishlist.dart';
 import 'package:e_commerce_learn/features/wishlist/data/models/wishlist_item.dart';
@@ -74,7 +74,7 @@ class _WishlistTile extends StatelessWidget {
       ),
       title: Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis),
       // The price when it was saved: the details screen shows today's.
-      subtitle: Text(formatPrice(item.priceCents)),
+      subtitle: PriceText(item.priceCents),
       // Inside the Profile tab, so back returns here.
       onTap: () => context.push('/profile/wishlist/product/${item.productId}'),
       // No Undo: a heart on the product puts it back with one tap.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:e_commerce_learn/core/widgets/price_text.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/profile/presentation/screens/profile_screen.dart';
@@ -74,8 +75,8 @@ void main() {
       tester.getTopLeft(find.text(_paletteTitle)).dy,
       lessThan(tester.getTopLeft(find.text(_mascaraTitle)).dy),
     );
-    expect(find.text(r'$19.99'), findsOne);
-    expect(find.text(r'$9.99'), findsOne);
+    expect(find.widgetWithText(PriceText, r'$19.99'), findsOne);
+    expect(find.widgetWithText(PriceText, r'$9.99'), findsOne);
   });
 
   testWidgets('the heart removes a product at once, with no Undo', (

@@ -4,11 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
 import 'package:e_commerce_learn/core/errors/app_exception.dart';
-import 'package:e_commerce_learn/core/utils/price_formatter.dart';
 import 'package:e_commerce_learn/core/utils/text_format.dart';
 import 'package:e_commerce_learn/core/widgets/empty_view.dart';
 import 'package:e_commerce_learn/core/widgets/error_view.dart';
 import 'package:e_commerce_learn/core/widgets/loading_view.dart';
+import 'package:e_commerce_learn/core/widgets/price_text.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart.dart';
 import 'package:e_commerce_learn/features/cart/presentation/add_to_cart.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
@@ -172,8 +172,8 @@ class _ProductInfo extends StatelessWidget {
             child: Text(product.title, style: textTheme.headlineSmall),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            formatPrice(product.priceCents),
+          PriceText(
+            product.priceCents,
             style: textTheme.headlineSmall?.copyWith(
               color: colorScheme.primary,
               fontWeight: FontWeight.bold,

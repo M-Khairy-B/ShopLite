@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:e_commerce_learn/app/theme/app_spacing.dart';
 import 'package:e_commerce_learn/core/utils/price_formatter.dart';
+import 'package:e_commerce_learn/core/widgets/price_text.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart_item.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
@@ -76,8 +77,8 @@ class CartLineTile extends StatelessWidget {
                       onIncrement: onIncrement,
                       onDecrement: onDecrement,
                     ),
-                    Text(
-                      formatPrice(item.lineTotalCents),
+                    PriceText(
+                      item.lineTotalCents,
                       style: textTheme.titleMedium?.copyWith(
                         color: colorScheme.primary,
                       ),

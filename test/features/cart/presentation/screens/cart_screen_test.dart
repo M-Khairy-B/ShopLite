@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:e_commerce_learn/core/widgets/price_text.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart.dart';
 import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.dart';
 import 'package:e_commerce_learn/features/cart/presentation/screens/cart_screen.dart';
@@ -63,7 +64,8 @@ void main() {
     expect(_inLine(1, find.text('Essence Mascara Lash Princess')), findsOne);
     expect(_inLine(1, find.text('\$9.99 each')), findsOne);
     expect(_inLine(1, find.text('2')), findsOne);
-    expect(_inLine(1, find.text('\$19.98')), findsOne); // 2 × $9.99
+    // 2 × $9.99
+    expect(_inLine(1, find.widgetWithText(PriceText, '\$19.98')), findsOne);
     expect(_line(2), findsOne);
     expect(_line(6), findsOne);
   });
@@ -74,7 +76,8 @@ void main() {
     await _pumpCart(tester, _threeLines());
 
     expect(find.text('Subtotal (4 items)'), findsOne);
-    expect(find.text('\$89.96'), findsOne); // 19.98 + 19.99 + 49.99
+    // 19.98 + 19.99 + 49.99
+    expect(find.widgetWithText(PriceText, '\$89.96'), findsOne);
   });
 
   testWidgets('one item is "1 item", not "1 items"', (tester) async {
@@ -91,7 +94,7 @@ void main() {
     await tester.pump();
 
     expect(cart.state.quantityOf(1), 3);
-    expect(_inLine(1, find.text('\$29.97')), findsOne);
+    expect(_inLine(1, find.widgetWithText(PriceText, '\$29.97')), findsOne);
     expect(find.text('Subtotal (5 items)'), findsOne);
   });
 
