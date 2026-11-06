@@ -17,6 +17,7 @@ import 'package:e_commerce_learn/features/products/presentation/cubits/product_d
 import 'package:e_commerce_learn/features/products/presentation/cubits/product_details_state.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_image.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/quantity_selector.dart';
+import 'package:e_commerce_learn/features/wishlist/presentation/widgets/wishlist_button.dart';
 
 /// From this width (in dp) the image and the details sit side by side.
 /// 600 dp is where Material Design stops treating a screen as "compact".
@@ -51,7 +52,20 @@ class ProductDetailsScreen extends StatelessWidget {
       // Scaffold, above the bar, and goes away when the screen does.
       child: ScaffoldMessenger(
         child: Scaffold(
-          appBar: AppBar(),
+          appBar: AppBar(
+            actions: [
+              // Only once the product has loaded: saving needs its title,
+              // photo and price.
+              BlocBuilder<ProductDetailsCubit, ProductDetailsState>(
+                builder: (context, state) {
+                  if (state case ProductDetailsLoaded(:final product)) {
+                    return WishlistButton(product: product);
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
+          ),
           body: BlocBuilder<ProductDetailsCubit, ProductDetailsState>(
             builder: (context, state) {
               return switch (state) {

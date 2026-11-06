@@ -17,6 +17,7 @@ import 'package:e_commerce_learn/features/products/presentation/cubits/products_
 import 'package:e_commerce_learn/features/products/presentation/widgets/category_chips.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/paged_product_grid.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/sort_options_sheet.dart';
+import 'package:e_commerce_learn/features/wishlist/presentation/widgets/wishlist_button.dart';
 
 /// The first screen of the app: category filters above a product grid.
 ///
@@ -200,6 +201,8 @@ class _Catalog extends StatelessWidget {
               state: state,
               onProductTap: (product) => context.push('/product/${product.id}'),
               onAddToCart: (product) => addToCart(context, product),
+              wishlistButtonBuilder: (product) =>
+                  WishlistButton(product: product),
             ),
           ),
           ProductsEmpty() => const EmptyView(

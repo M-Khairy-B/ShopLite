@@ -7,24 +7,35 @@ import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.da
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
+import 'package:e_commerce_learn/features/wishlist/presentation/cubits/wishlist_cubit.dart';
 
 import 'fake_products_repository.dart';
 
 /// Puts what `ShopLiteApp` provides above [child], so screens below can
-/// read it: [repository] (a fake catalog by default) and [cart] (a new,
-/// empty cart by default).
+/// read it: [repository] (a fake catalog by default), [cart] and
+/// [wishlist] (new, empty ones by default).
 ///
-/// Pass your own [cart] to fill it before the test, or to check it after.
+/// Pass your own [cart] or [wishlist] to fill it before the test, or to
+/// check it after.
 Widget withAppProviders(
   Widget child, {
   ProductsRepository? repository,
   CartCubit? cart,
+  WishlistCubit? wishlist,
 }) {
   return RepositoryProvider<ProductsRepository>.value(
     value: repository ?? FakeProductsRepository(),
-    child: cart == null
-        ? BlocProvider(create: (_) => CartCubit(), child: child)
-        : BlocProvider.value(value: cart, child: child),
+    child: MultiBlocProvider(
+      providers: [
+        cart == null
+            ? BlocProvider(create: (_) => CartCubit())
+            : BlocProvider.value(value: cart),
+        wishlist == null
+            ? BlocProvider(create: (_) => WishlistCubit())
+            : BlocProvider.value(value: wishlist),
+      ],
+      child: child,
+    ),
   );
 }
 
@@ -44,21 +55,27 @@ Future<void> pumpShopLiteApp(
 }
 
 /// Starts the app's router at [location], with what `ShopLiteApp` provides
-/// above it ([cart]: a new, empty one by default), and waits until the
-/// screen has finished loading.
+/// above it ([cart] and [wishlist]: new, empty ones by default), and waits
+/// until the screen has finished loading.
 ///
-/// Like [pumpShopLiteApp], but on any page, and with a cart the test can
-/// fill before and check after. A test that passes [cart] closes it.
+/// Like [pumpShopLiteApp], but on any page, and with a cart and a wishlist
+/// the test can fill before and check after. A test that passes one closes
+/// it.
 Future<void> pumpAppAt(
   WidgetTester tester,
   String location, {
   CartCubit? cart,
+  WishlistCubit? wishlist,
 }) async {
   final router = createAppRouter(initialLocation: location);
   addTearDown(router.dispose);
 
   await tester.pumpWidget(
-    withAppProviders(MaterialApp.router(routerConfig: router), cart: cart),
+    withAppProviders(
+      MaterialApp.router(routerConfig: router),
+      cart: cart,
+      wishlist: wishlist,
+    ),
   );
   await tester.pumpAndSettle();
 }

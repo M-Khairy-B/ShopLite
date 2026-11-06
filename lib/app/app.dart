@@ -5,6 +5,7 @@ import 'package:e_commerce_learn/app/router.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
 import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
+import 'package:e_commerce_learn/features/wishlist/presentation/cubits/wishlist_cubit.dart';
 
 class ShopLiteApp extends StatefulWidget {
   const ShopLiteApp({super.key, required this.productsRepository});
@@ -43,12 +44,16 @@ class _ShopLiteAppState extends State<ShopLiteApp> {
     // it.
     return RepositoryProvider<ProductsRepository>.value(
       value: widget.productsRepository,
-      // The cart is app state: one cart, shared by every screen, that lives
-      // as long as the app. So it's provided here, above the router, and
-      // not inside a route (each route would get its own cart). `create`,
-      // not `.value`: this provider owns the cubit and closes it.
-      child: BlocProvider(
-        create: (_) => CartCubit(),
+      // The cart and the wishlist are app state: one of each, shared by
+      // every screen, living as long as the app. So they're provided here,
+      // above the router, and not inside a route (each route would get its
+      // own). `create`, not `.value`: these providers own the cubits and
+      // close them.
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => CartCubit()),
+          BlocProvider(create: (_) => WishlistCubit()),
+        ],
         child: MaterialApp.router(
           title: 'ShopLite',
           theme: buildAppTheme(),

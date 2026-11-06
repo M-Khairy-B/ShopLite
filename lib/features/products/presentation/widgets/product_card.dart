@@ -16,6 +16,7 @@ class ProductCard extends StatelessWidget {
     required this.product,
     this.onTap,
     this.onAddToCart,
+    this.wishlistButton,
   });
 
   final Product product;
@@ -27,11 +28,18 @@ class ProductCard extends StatelessWidget {
   /// button.
   final void Function()? onAddToCart;
 
+  /// Shown over the image's top corner. If `null`, there is none.
+  ///
+  /// A widget, not a callback like [onAddToCart]: the heart reads the
+  /// wishlist itself, so a change rebuilds the heart and not the card.
+  final Widget? wishlistButton;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final onAddToCart = this.onAddToCart;
+    final wishlistButton = this.wishlistButton;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -43,7 +51,27 @@ class ProductCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: ProductImage(url: product.thumbnailUrl)),
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ProductImage(url: product.thumbnailUrl),
+                    if (wishlistButton != null)
+                      PositionedDirectional(
+                        top: AppSpacing.xs,
+                        end: AppSpacing.xs,
+                        // A disc behind the heart, so it shows on any
+                        // photo, light or dark.
+                        child: Material(
+                          color: colorScheme.surface,
+                          shape: const CircleBorder(),
+                          clipBehavior: Clip.antiAlias,
+                          child: wishlistButton,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 child: Column(

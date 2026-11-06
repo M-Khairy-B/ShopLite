@@ -7,6 +7,7 @@ import 'package:e_commerce_learn/features/products/presentation/screens/home_scr
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
 import 'package:e_commerce_learn/features/search/presentation/screens/search_screen.dart';
+import 'package:e_commerce_learn/features/wishlist/presentation/screens/wishlist_screen.dart';
 
 import '../helpers/pump_app.dart';
 
@@ -57,6 +58,18 @@ void main() {
     await _pumpAt(tester, '/search/product/78');
 
     expect(find.text('Apple MacBook Pro 14 Inch Space Grey'), findsOneWidget);
+  });
+
+  testWidgets('/profile/wishlist/product/78 shows that product, and back '
+      'returns to the wishlist', (tester) async {
+    await _pumpAt(tester, '/profile/wishlist/product/78');
+
+    expect(find.text('Apple MacBook Pro 14 Inch Space Grey'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(WishlistScreen), findsOneWidget);
   });
 
   testWidgets('/product/abc (not a number) shows page not found', (
