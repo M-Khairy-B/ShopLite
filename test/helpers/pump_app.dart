@@ -3,13 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/app/app.dart';
 import 'package:e_commerce_learn/app/router.dart';
+import 'package:e_commerce_learn/features/cart/data/cart_local_store.dart';
 import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_grid.dart';
+import 'package:e_commerce_learn/features/wishlist/data/wishlist_local_store.dart';
 import 'package:e_commerce_learn/features/wishlist/presentation/cubits/wishlist_cubit.dart';
 
 import 'fake_products_repository.dart';
+import 'fake_stores.dart';
 
 /// Puts what `ShopLiteApp` provides above [child], so screens below can
 /// read it: [repository] (a fake catalog by default), [cart] and
@@ -39,17 +42,24 @@ Widget withAppProviders(
   );
 }
 
-/// Starts the whole app with [repository] (a fake catalog by default), and
-/// waits until the first screen has finished loading.
+/// Starts the whole app with [repository] (a fake catalog by default) and
+/// the stores the cart and wishlist are saved in (empty fakes by default),
+/// and waits until the first screen has finished loading.
 ///
 /// Waiting matters: a test that checks a screen while it is still loading
 /// may pass without testing anything.
 Future<void> pumpShopLiteApp(
   WidgetTester tester, {
   ProductsRepository? repository,
+  CartLocalStore? cartStore,
+  WishlistLocalStore? wishlistStore,
 }) async {
   await tester.pumpWidget(
-    ShopLiteApp(productsRepository: repository ?? FakeProductsRepository()),
+    ShopLiteApp(
+      productsRepository: repository ?? FakeProductsRepository(),
+      cartStore: cartStore ?? FakeCartStore(),
+      wishlistStore: wishlistStore ?? FakeWishlistStore(),
+    ),
   );
   await tester.pumpAndSettle();
 }

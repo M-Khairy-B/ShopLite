@@ -4,6 +4,7 @@ import 'package:e_commerce_learn/features/cart/data/models/cart.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart_item.dart';
 import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.dart';
 
+import '../../../../helpers/fake_stores.dart';
 import '../../../../helpers/mock_products.dart';
 
 void main() {
@@ -19,6 +20,60 @@ void main() {
     expect(cubit.state, const Cart.empty());
 
     cubit.close();
+  });
+
+  group('with a store', () {
+    test('starts from the saved cart', () {
+      final cubit = CartCubit(store: FakeCartStore(twoLines()));
+      addTearDown(cubit.close);
+
+      expect(cubit.state, twoLines());
+    });
+
+    test('saves every change, in order', () async {
+      final store = FakeCartStore();
+      final cubit = CartCubit(store: store);
+      addTearDown(cubit.close);
+
+      cubit
+        ..add(mascara)
+        ..increment(1)
+        ..add(palette)
+        ..remove(1);
+
+      expect(store.saves, [
+        const Cart.empty().add(mascara),
+        const Cart.empty().add(mascara, quantity: 2),
+        const Cart.empty().add(mascara, quantity: 2).add(palette),
+        const Cart.empty().add(palette),
+      ]);
+    });
+
+    test('a change that changes nothing saves nothing', () {
+      final store = FakeCartStore(twoLines());
+      final cubit = CartCubit(store: store);
+      addTearDown(cubit.close);
+
+      cubit
+        ..remove(99)
+        ..decrement(2); // the palette is already at 1
+
+      expect(store.saves, isEmpty);
+    });
+
+    // Deferred from Task 4. A cubit that starts from a saved cart has not
+    // emitted yet, so Cubit would let an equal cart through: add() must see
+    // for itself that nothing was added.
+    blocTest<CartCubit, Cart>(
+      'adding at the limit, to a full saved line, emits nothing',
+      build: () => CartCubit(
+        store: FakeCartStore(
+          const Cart.empty().add(mascara, quantity: maxQuantityPerItem),
+        ),
+      ),
+      act: (cubit) => cubit.add(mascara),
+      expect: () => <Cart>[],
+    );
   });
 
   group('add', () {

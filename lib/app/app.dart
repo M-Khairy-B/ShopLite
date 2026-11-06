@@ -3,16 +3,29 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/router.dart';
 import 'package:e_commerce_learn/app/theme/app_theme.dart';
+import 'package:e_commerce_learn/features/cart/data/cart_local_store.dart';
 import 'package:e_commerce_learn/features/cart/presentation/cubits/cart_cubit.dart';
 import 'package:e_commerce_learn/features/products/data/products_repository.dart';
+import 'package:e_commerce_learn/features/wishlist/data/wishlist_local_store.dart';
 import 'package:e_commerce_learn/features/wishlist/presentation/cubits/wishlist_cubit.dart';
 
 class ShopLiteApp extends StatefulWidget {
-  const ShopLiteApp({super.key, required this.productsRepository});
+  const ShopLiteApp({
+    super.key,
+    required this.productsRepository,
+    required this.cartStore,
+    required this.wishlistStore,
+  });
 
   /// Where products come from: the real API (see main.dart), or a fake in
   /// tests.
   final ProductsRepository productsRepository;
+
+  /// Where the cart and the wishlist are kept between launches: the device
+  /// (see main.dart), or fakes in tests. Required, so the app can't forget
+  /// to save.
+  final CartLocalStore cartStore;
+  final WishlistLocalStore wishlistStore;
 
   @override
   State<ShopLiteApp> createState() => _ShopLiteAppState();
@@ -51,8 +64,10 @@ class _ShopLiteAppState extends State<ShopLiteApp> {
       // close them.
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => CartCubit()),
-          BlocProvider(create: (_) => WishlistCubit()),
+          BlocProvider(create: (_) => CartCubit(store: widget.cartStore)),
+          BlocProvider(
+            create: (_) => WishlistCubit(store: widget.wishlistStore),
+          ),
         ],
         child: MaterialApp.router(
           title: 'ShopLite',

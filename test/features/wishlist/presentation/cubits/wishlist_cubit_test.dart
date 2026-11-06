@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/features/wishlist/data/models/wishlist.dart';
 import 'package:e_commerce_learn/features/wishlist/presentation/cubits/wishlist_cubit.dart';
 
+import '../../../../helpers/fake_stores.dart';
 import '../../../../helpers/mock_products.dart';
 
 void main() {
@@ -15,6 +16,34 @@ void main() {
     expect(cubit.state, const Wishlist.empty());
 
     cubit.close();
+  });
+
+  group('with a store', () {
+    test('starts from the saved wishlist', () {
+      final saved = const Wishlist.empty().toggle(mascara);
+      final cubit = WishlistCubit(store: FakeWishlistStore(saved));
+      addTearDown(cubit.close);
+
+      expect(cubit.state, saved);
+    });
+
+    test('saves every change, and only changes', () {
+      final store = FakeWishlistStore();
+      final cubit = WishlistCubit(store: store);
+      addTearDown(cubit.close);
+
+      cubit
+        ..toggle(mascara)
+        ..toggle(palette)
+        ..remove(99) // not saved: no change
+        ..remove(1);
+
+      expect(store.saves, [
+        const Wishlist.empty().toggle(mascara),
+        const Wishlist.empty().toggle(mascara).toggle(palette),
+        const Wishlist.empty().toggle(palette),
+      ]);
+    });
   });
 
   group('toggle', () {

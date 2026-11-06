@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:e_commerce_learn/features/cart/data/cart_local_store.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart.dart';
 import 'package:e_commerce_learn/features/cart/data/models/cart_item.dart';
 import 'package:e_commerce_learn/features/products/data/models/product.dart';
@@ -17,21 +20,29 @@ import 'package:e_commerce_learn/features/products/data/models/product.dart';
 /// and dialog finds the same cubit. Provided inside a route, each screen
 /// would get its own, separate cart.
 class CartCubit extends Cubit<Cart> {
-  CartCubit() : super(const Cart.empty());
+  /// Starts from the cart saved in [store], and saves every change to it.
+  /// Without a store (in tests), it starts empty and saves nothing.
+  CartCubit({CartLocalStore? store})
+    : _store = store,
+      super(store?.load() ?? const Cart.empty());
+
+  final CartLocalStore? _store;
 
   /// Adds one [product], or [quantity] of it, up to [maxQuantityPerItem].
   ///
   /// Returns how many were really added: fewer than [quantity] near the
   /// limit, and 0 at it. The screen uses this to say what happened.
-  ///
-  /// At the limit the new cart equals the old one, and Cubit skips it: a
-  /// line can only be full after an emit. (A cubit that starts from a saved
-  /// cart, in Task 6, needs its own check here, with a test.)
   int add(Product product, {int quantity = 1}) {
     final before = state.quantityOf(product.id);
     final cart = state.add(product, quantity: quantity);
+    final added = cart.quantityOf(product.id) - before;
+    if (added == 0) {
+      // The line is full, so nothing changed. Needed since the cart can
+      // start from a saved, full line, before this cubit's first emit.
+      return 0;
+    }
     emit(cart);
-    return cart.quantityOf(product.id) - before;
+    return added;
   }
 
   /// Takes the product's whole line out of the cart.
@@ -82,5 +93,16 @@ class CartCubit extends Cubit<Cart> {
       return;
     }
     emit(const Cart.empty());
+  }
+
+  /// Saves each new cart. Cubit calls this after every emit, so this one
+  /// place covers every method above, and any added later.
+  ///
+  /// Not awaited: the screen doesn't wait for the disk. The save can't
+  /// fail loudly either (see [CartLocalStore.save]).
+  @override
+  void onChange(Change<Cart> change) {
+    super.onChange(change);
+    unawaited(_store?.save(change.nextState));
   }
 }
