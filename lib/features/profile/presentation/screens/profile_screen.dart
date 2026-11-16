@@ -23,11 +23,17 @@ class ProfileScreen extends StatelessWidget {
           ),
           const Divider(height: 1),
           // Expanded: EmptyView centers itself in the space that is left.
-          const Expanded(
+          Expanded(
             child: EmptyView(
               icon: Icons.person_outline,
               title: "You're not signed in",
               message: 'Sign in to see your profile and orders.',
+              // `push`: '/login' is outside the tabs, and back should
+              // return here.
+              action: FilledButton(
+                onPressed: () => context.push('/login'),
+                child: const Text('Sign in'),
+              ),
             ),
           ),
         ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:e_commerce_learn/app/app_shell.dart';
 import 'package:e_commerce_learn/core/widgets/empty_view.dart';
+import 'package:e_commerce_learn/features/auth/presentation/screens/login_screen.dart';
 import 'package:e_commerce_learn/features/cart/presentation/screens/cart_screen.dart';
 import 'package:e_commerce_learn/features/categories/presentation/screens/categories_screen.dart';
 import 'package:e_commerce_learn/features/categories/presentation/screens/category_products_screen.dart';
@@ -94,9 +95,22 @@ GoRouter createAppRouter({String initialLocation = '/'}) {
           ),
         ],
       ),
+      // Outside the tab shell: signing in is a step of its own, so it
+      // covers the whole screen, tabs included.
+      GoRoute(
+        path: '/login',
+        builder: (context, state) =>
+            const LoginScreen(onSubmit: _signInNotConnectedYet),
+      ),
     ],
     errorBuilder: (context, state) => const _PageNotFoundScreen(),
   );
+}
+
+// TEMP (Phase 7, Task 2): until Task 5 connects AuthCubit, signing in only
+// waits a second, so the locked form can be seen, then does nothing.
+Future<void> _signInNotConnectedYet(String username, String password) {
+  return Future.delayed(const Duration(seconds: 1));
 }
 
 /// The `product/:id` route. Used in more than one tab, so that a product

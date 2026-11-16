@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:e_commerce_learn/app/router.dart';
+import 'package:e_commerce_learn/features/auth/presentation/screens/login_screen.dart';
 import 'package:e_commerce_learn/features/categories/presentation/screens/categories_screen.dart';
 import 'package:e_commerce_learn/features/categories/presentation/screens/category_products_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/home_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/screens/product_details_screen.dart';
 import 'package:e_commerce_learn/features/products/presentation/widgets/product_card.dart';
+import 'package:e_commerce_learn/features/profile/presentation/screens/profile_screen.dart';
 import 'package:e_commerce_learn/features/search/presentation/screens/search_screen.dart';
 import 'package:e_commerce_learn/features/wishlist/presentation/screens/wishlist_screen.dart';
 
@@ -70,6 +72,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(WishlistScreen), findsOneWidget);
+  });
+
+  testWidgets('/login shows the sign-in screen, above the tabs', (
+    tester,
+  ) async {
+    await _pumpAt(tester, '/login');
+
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+  });
+
+  testWidgets('"Sign in" on Profile opens the sign-in screen, and back '
+      'returns to Profile', (tester) async {
+    await _pumpAt(tester, '/profile');
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginScreen), findsNothing);
+    expect(find.byType(ProfileScreen), findsOneWidget);
   });
 
   testWidgets('/product/abc (not a number) shows page not found', (

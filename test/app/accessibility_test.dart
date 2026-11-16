@@ -18,6 +18,7 @@ const _screens = {
   'cart': '/cart',
   'profile': '/profile',
   'wishlist': '/profile/wishlist',
+  'sign in': '/login',
   'page not found': '/nope',
 };
 
